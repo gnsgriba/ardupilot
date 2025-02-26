@@ -816,6 +816,7 @@ bool AP_ExternalAHRS_InertialLabs::check_uart()
 
         ilab_sensors_data_avr = {};
         ilab_ins_data_avr = {};
+        ilab_sensor_bias_avr = {};
         lat_int64_t = 0;
         lon_int64_t = 0;
         new_aiding_data_log = 0;
