@@ -4145,11 +4145,12 @@ void GCS_MAVLINK::handle_message(const mavlink_message_t &msg)
 #if AP_GPS_ENABLED
     case MAVLINK_MSG_ID_GPS_RTCM_DATA:
     case MAVLINK_MSG_ID_GPS_INPUT:
-        AP::externalAHRS().handle_msg(chan, msg);
-        break;
     case MAVLINK_MSG_ID_HIL_GPS:
     case MAVLINK_MSG_ID_GPS_INJECT_DATA:
         AP::gps().handle_msg(chan, msg);
+#if HAL_EXTERNAL_AHRS_ENABLED
+        AP::externalAHRS().handle_msg(chan, msg);
+#endif
         break;
 #endif
 
