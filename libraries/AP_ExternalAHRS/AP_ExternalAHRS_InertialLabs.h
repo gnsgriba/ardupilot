@@ -42,7 +42,6 @@ public:
     void write_bytes(const char *bytes, uint8_t len) override;
     void handle_command(ExternalAHRS_command command, const ExternalAHRS_command_data &data) override;
     bool get_wind_estimation(Vector3f &wind) override;
-    void handle_msg(const mavlink_message_t &msg) override;
     void send_eahrs_status_flag(class GCS_MAVLINK &link) const override;
 
     // check for new data

@@ -19,8 +19,6 @@
 #pragma once
 
 #include "AP_ExternalAHRS.h"
-#include <GCS_MAVLink/GCS_MAVLink.h>
-#include <GCS_MAVLink/GCS_config.h>
 
 #if HAL_EXTERNAL_AHRS_ENABLED
 
@@ -48,10 +46,6 @@ public:
     virtual void handle_command(ExternalAHRS_command command, const ExternalAHRS_command_data &data) {};
     virtual bool get_wind_estimation(Vector3f &wind) { return false; }
     virtual void send_eahrs_status_flag(class GCS_MAVLINK &link) const {}
-
-#if HAL_GCS_ENABLED
-    virtual void handle_msg(const mavlink_message_t &msg) { return ; }
-#endif
 
     // Check for new data.
     // This is used when there's not a separate thread for EAHRS.
