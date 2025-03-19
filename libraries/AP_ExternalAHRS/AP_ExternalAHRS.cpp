@@ -308,15 +308,6 @@ bool AP_ExternalAHRS::get_estimate_wind(Vector3f &wind) const
     return false;
 }
 
-#if HAL_GCS_ENABLED
-void AP_ExternalAHRS::handle_msg(mavlink_channel_t chan, const mavlink_message_t &msg)
-{
-    if (backend) {
-        backend->handle_msg(msg);
-    }
-}
-#endif
-
 void AP_ExternalAHRS::send_eahrs_status_flag(GCS_MAVLINK &link) const
 {
     if (backend) {

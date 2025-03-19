@@ -28,7 +28,6 @@
 #include <AP_Param/AP_Param.h>
 #include <AP_Common/Location.h>
 #include <AP_NavEKF/AP_Nav_Common.h>
-#include <GCS_MAVLink/GCS_MAVLink.h>
 
 class AP_ExternalAHRS_backend;
 
@@ -129,7 +128,6 @@ public:
     void write_bytes(const char *bytes, uint8_t len);
     void handle_command(ExternalAHRS_command command, const ExternalAHRS_command_data &data);
     bool get_estimate_wind(Vector3f &wind) const;
-    void handle_msg(mavlink_channel_t chan, const mavlink_message_t &msg);
     void send_eahrs_status_flag(class GCS_MAVLINK &link) const;
 
     // update backend
