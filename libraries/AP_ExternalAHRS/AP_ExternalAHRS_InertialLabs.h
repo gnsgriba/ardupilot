@@ -364,22 +364,6 @@ private:
     ILAB_INS_DATA ilab_ins_data;
     ILAB_EXT_DATA ilab_ext_data;
 
-    ILAB_SENSORS_DATA ilab_sensors_data_avr;
-    ILAB_INS_DATA ilab_ins_data_avr;
-    int64_t lat_int64_t = 0;
-    int64_t lon_int64_t = 0;
-    uint16_t new_aiding_data_log = 0;
-    uint16_t new_aiding_data2_log = 0;
-
-    struct {
-        int16_t gyroX;
-        int16_t gyroY;
-        int16_t gyroZ;
-        int16_t accX;
-        int16_t accY;
-        int16_t accZ;
-    } ilab_sensor_bias_avr;
-
    struct {
         uint16_t unit_status;
         uint16_t unit_status2;
@@ -397,7 +381,6 @@ private:
     uint32_t last_gps_ms;
     uint32_t startMagAcc_ms;
 
-    uint16_t log_counter = 0;
     uint16_t tx_counter = 0;
 };
 
