@@ -718,8 +718,8 @@ bool AP_ExternalAHRS_InertialLabs::check_uart()
                                 now_us, ilab_ins_data.ms_tow,
                                 ilab_ins_data.roll, ilab_ins_data.pitch, ilab_ins_data.yaw,
                                 ilab_ins_data.velocity.x, ilab_ins_data.velocity.y, ilab_ins_data.velocity.z,
-                                static_cast<double>(ilab_ins_data.latitude)*1.0e-7f,
-                                static_cast<double>(ilab_ins_data.longitude)*1.0e-7f,
+                                static_cast<double>(ilab_ins_data.latitude)*1.0e-7,
+                                static_cast<double>(ilab_ins_data.longitude)*1.0e-7,
                                 static_cast<float>(ilab_ins_data.altitude)*0.01f);
 
     // @LoggerMessage: ILB9
@@ -764,8 +764,8 @@ bool AP_ExternalAHRS_InertialLabs::check_uart()
                                     "QIIHBBddffff",
                                     now_us, ilab_ins_data.ms_tow, ilab_gps_data.ms_tow, ilab_gps_data.gps_week,
                                     ilab_gps_data.fix_type, ilab_gps_data.new_data,
-                                    static_cast<double>(ilab_gps_data.latitude)*1.0e-7f,
-                                    static_cast<double>(ilab_gps_data.longitude)*1.0e-7f,
+                                    static_cast<double>(ilab_gps_data.latitude)*1.0e-7,
+                                    static_cast<double>(ilab_gps_data.longitude)*1.0e-7,
                                     static_cast<float>(ilab_gps_data.altitude)*0.01f,
                                     ilab_gps_data.track_over_ground, ilab_gps_data.hor_speed, ilab_gps_data.ver_speed);
 
@@ -845,8 +845,8 @@ bool AP_ExternalAHRS_InertialLabs::check_uart()
                                     "F-----------",
                                     "QIddffffffff",
                                     now_us, ilab_ins_data.ms_tow,
-                                    static_cast<double>(ilab_ext_data.ext_hor_pos.lat)*1.0e-7f,
-                                    static_cast<double>(ilab_ext_data.ext_hor_pos.lon)*1.0e-7f,
+                                    static_cast<double>(ilab_ext_data.ext_hor_pos.lat)*1.0e-7,
+                                    static_cast<double>(ilab_ext_data.ext_hor_pos.lon)*1.0e-7,
                                     static_cast<float>(ilab_ext_data.ext_alt.alt)*1.0e-3f,
                                     static_cast<float>(ilab_ext_data.ext_hor_pos.lat_std)*0.01f,
                                     static_cast<float>(ilab_ext_data.ext_hor_pos.lon_std)*0.01f,
