@@ -1,9 +1,9 @@
-#include "AP_ExternalAHRS_InertialLabs_command.h"
+#include "InertialLabs_command.h"
 
 #if AP_EXTERNAL_AHRS_INERTIALLABS_ENABLED
 
 #include "AP_ExternalAHRS_command_context.h"
-#include "AP_ExternalAHRS_InertialLabs_aiding_data.h"
+#include "InertialLabs_aiding_data.h"
 
 #include <AP_Math/AP_Math.h>
 
@@ -158,7 +158,7 @@ bool fill_transport_protocol_data(Data_context &context) {
     context.data[0] = 0xAA; // header 1
     context.data[1] = 0x55; // header 2
     context.data[2] = 0x01; // message type for incoming data
-    context.data[3] = 0x62; // message identifer of Aiding data packages
+    context.data[3] = 0x62; // message identifier of Aiding data packages
 
     const uint16_t messageLength = context.length - 2; // all package length without the header (first 2 bites)
     memcpy(&context.data[4], &messageLength, sizeof(uint16_t));
@@ -169,6 +169,6 @@ bool fill_transport_protocol_data(Data_context &context) {
     return true;
 }
 
-} // namespace Command
+} // namespace InertialLabs
 
 #endif  // AP_EXTERNAL_AHRS_INERTIALLABS_ENABLED
