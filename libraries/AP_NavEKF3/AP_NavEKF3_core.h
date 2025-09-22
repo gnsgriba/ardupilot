@@ -121,6 +121,9 @@
 // maximum GPs ground course uncertainty allowed for yaw alignment (deg)
 #define GPS_VEL_YAW_ALIGN_MAX_ANG_ERR 15.0F
 
+// dwell time (ms) to debounce wind estimation enable/disable requests
+#define WIND_FREEZE_DWELL_MS 5000U
+
 class NavEKF3_core : public NavEKF_core_common
 {
 public:
@@ -450,6 +453,9 @@ public:
 
     // get a yaw estimator instance
     const EKFGSF_yaw *get_yawEstimator(void) const { return yawEstimator; }
+
+    // control wind estimation updates (true = disabled, false = enabled)
+    void requestFreezeWindEstimation(bool v);
 
 private:
     EKFGSF_yaw *yawEstimator;
@@ -1030,6 +1036,9 @@ private:
     // returns true if this EKF lane uses GPS velocity as XY aiding source
     bool isGpsVelLane() const { return gpsVelLane; }
 
+    // return true if wind estimation updates are currently allowed
+    bool windEstimationAllowed();
+
     // Variables
     bool statesInitialised;         // boolean true when filter states have been initialised
     bool magHealth;                 // boolean true if magnetometer has passed innovation consistency check
@@ -1204,6 +1213,11 @@ private:
     uint32_t lastInitFailReport_ms; // Last time the buffer initialisation failure report was sent (msec)
     ftype tiltErrorVariance;        // variance of the angular uncertainty measured perpendicular to the vertical (rad^2)
     bool gpsVelLane;                //  true if this lane currently uses GPS velocity for XY aiding
+    bool windFreezeRequested;       // request for wind estimation updates (true = stop, false = allow)
+    bool windFrozen;                // current wind estimation update state (true = update stopped)
+    uint32_t windUnfreezeReqStart_ms; // start time of "allow wind estimation updates" request
+    uint32_t windFreezeReqStart_ms;   // start time of "stop wind estimation updates" request
+    uint32_t windFreezeLastToggle_ms; // last time wind estimation update state changed
 
     // variables used to calculate a vertical velocity that is kinematically consistent with the vertical position
     struct {

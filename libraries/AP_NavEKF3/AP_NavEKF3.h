@@ -365,6 +365,9 @@ public:
     // get a yaw estimator instance
     const EKFGSF_yaw *get_yawEstimator(void) const;
 
+    // control wind estimation updates (true = disable, false = allow)
+    void requestFreezeWindEstimation(bool v);
+
 private:
     uint8_t num_cores; // number of allocated cores
     uint8_t primary;   // current primary core

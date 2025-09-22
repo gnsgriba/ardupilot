@@ -1040,7 +1040,21 @@ void NavEKF3_core::FuseVelPosNED()
                 }
 
                 // inhibit wind state estimation by setting Kalman gains to zero
-                if (!inhibitWindStates) {
+#if EK3_FEATURE_EXTERNAL_NAV
+                const bool gps_vel_now = fuseVelData && (PV_AidingMode == AID_ABSOLUTE) && !useExtNavVel;
+                const bool gps_pos_now = fusePosData && (PV_AidingMode == AID_ABSOLUTE) && !extNavUsedForPos;
+#else
+                const bool gps_vel_now = fuseVelData && (PV_AidingMode == AID_ABSOLUTE);
+                const bool gps_pos_now = fusePosData && (PV_AidingMode == AID_ABSOLUTE);
+#endif
+
+                const bool obs_is_gps =
+                    ((obsIndex == 0 || obsIndex == 1) && gps_vel_now) ||
+                    ((obsIndex == 3 || obsIndex == 4) && gps_pos_now);
+
+                const bool freeze_wind = (!windEstimationAllowed()) && obs_is_gps;
+
+                if (!inhibitWindStates && !freeze_wind) {
                     Kfusion[22] = P[22][stateIndex]*SK;
                     Kfusion[23] = P[23][stateIndex]*SK;
                 } else {

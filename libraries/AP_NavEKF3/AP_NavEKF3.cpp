@@ -2080,3 +2080,13 @@ const EKFGSF_yaw *NavEKF3::get_yawEstimator(void) const
     }
     return nullptr;
 }
+
+// Forward wind-estimation update control request to all EKF cores
+void NavEKF3::requestFreezeWindEstimation(bool v)
+{
+    if (!core) { return; }
+
+    for (uint8_t i = 0; i < num_cores; i++) {
+        core[i].requestFreezeWindEstimation(v);
+    }
+}

@@ -120,7 +120,7 @@ void NavEKF3_core::FuseAirspeed()
             zero_range(&Kfusion[0], 16, 21);
         }
 
-        if (tasDataDelayed.allowFusion && !inhibitWindStates) {
+        if (tasDataDelayed.allowFusion && !inhibitWindStates && windEstimationAllowed()) {
             Kfusion[22] = SK_TAS[0]*(P[22][4]*SH_TAS[2] - P[22][22]*SH_TAS[2] + P[22][5]*SK_TAS[1] - P[22][23]*SK_TAS[1] + P[22][6]*vd*SH_TAS[0]);
             Kfusion[23] = SK_TAS[0]*(P[23][4]*SH_TAS[2] - P[23][22]*SH_TAS[2] + P[23][5]*SK_TAS[1] - P[23][23]*SK_TAS[1] + P[23][6]*vd*SH_TAS[0]);
         } else {
@@ -424,7 +424,7 @@ void NavEKF3_core::FuseSideslip()
             zero_range(&Kfusion[0], 16, 21);
         }
 
-        if (!inhibitWindStates) {
+        if (!inhibitWindStates && windEstimationAllowed()) {
             Kfusion[22] = SK_BETA[0]*(P[22][0]*SK_BETA[5] + P[22][1]*SK_BETA[4] - P[22][4]*SK_BETA[1] + P[22][5]*SK_BETA[2] + P[22][2]*SK_BETA[6] + P[22][6]*SK_BETA[3] - P[22][3]*SK_BETA[7] + P[22][22]*SK_BETA[1] - P[22][23]*SK_BETA[2]);
             Kfusion[23] = SK_BETA[0]*(P[23][0]*SK_BETA[5] + P[23][1]*SK_BETA[4] - P[23][4]*SK_BETA[1] + P[23][5]*SK_BETA[2] + P[23][2]*SK_BETA[6] + P[23][6]*SK_BETA[3] - P[23][3]*SK_BETA[7] + P[23][22]*SK_BETA[1] - P[23][23]*SK_BETA[2]);
         } else {
@@ -615,8 +615,12 @@ void NavEKF3_core::FuseDragForces()
             // Kalman gains
             // Don't allow modification of any states other than wind velocity - we only need a wind estimate.
             // See AP_NavEKF3/derivation/generated/acc_bf_generated.cpp for un-implemented Kalman gain equations.
-            Kfusion[22] = -HK28*HK32;
-            Kfusion[23] = -HK20*HK32;
+            if (windEstimationAllowed()) {
+                Kfusion[22] = -HK28*HK32;
+                Kfusion[23] = -HK20*HK32;
+            } else {
+                zero_range(&Kfusion[0], 22, 23);
+            }
 
 
         } else if (axis_index == 1) {
@@ -698,8 +702,12 @@ void NavEKF3_core::FuseDragForces()
             // Kalman gains
             // Don't allow modification of any states other than wind velocity at this stage of development - we only need a wind estimate.
             // See AP_NavEKF3/derivation/generated/acc_bf_generated.cpp for un-implemented Kalman gain equations.
-            Kfusion[22] = -HK22*HK32;
-            Kfusion[23] = -HK28*HK32;
+            if (windEstimationAllowed()) {
+                Kfusion[22] = -HK22*HK32;
+                Kfusion[23] = -HK28*HK32;
+            } else {
+                zero_range(&Kfusion[0], 22, 23);
+            }
         }
 
         innovDrag[axis_index] = predAccel - mea_acc;

@@ -832,3 +832,75 @@ void NavEKF3_core::EKFGSF_requestYawReset()
 {
     EKFGSF_yaw_reset_request_ms = imuSampleTime_ms;
 }
+
+// runtime request to enable/disable wind estimation updates (true = disable)
+void NavEKF3_core::requestFreezeWindEstimation(bool v)
+{
+    windFreezeRequested = v;
+}
+
+// Gate for wind estimation updates (based on windFreezeRequested).
+// Behaviour:
+//  - If EK3_OPTIONS bit AllowWindEstimationFreeze is NOT set -> updates always allowed.
+//  - If the bit IS set:
+//      * windFreezeRequested == true  -> disable updates after WIND_FREEZE_DWELL_MS of continuous request
+//      * windFreezeRequested == false -> allow updates after WIND_FREEZE_DWELL_MS of continuous request
+//  - Requires WIND_FREEZE_DWELL_MS since the last state change.
+//  - Logs one line on each state transition.
+// Returns true if wind estimation updates are allowed.
+bool NavEKF3_core::windEstimationAllowed()
+{
+    if (!isGpsVelLane()) { return true; }
+
+    const bool opt_enabled =
+        (frontend != nullptr) &&
+        frontend->option_is_enabled(NavEKF3::Options::AllowWindEstimationFreeze);
+
+    const uint32_t now_ms = AP_HAL::millis();
+
+    if (!opt_enabled) {
+        if (windFrozen) {
+            GCS_SEND_TEXT(MAV_SEVERITY_INFO, "EKF3: enable wind updates");
+        }
+        windFrozen              = false;
+        windFreezeReqStart_ms   = 0;
+        windUnfreezeReqStart_ms = 0;
+        return true;
+    }
+
+    // maintain dwell timers for the current request
+    if (windFreezeRequested) {
+        // counting time to disable updates
+        if (windFreezeReqStart_ms == 0) { windFreezeReqStart_ms = now_ms; }
+        windUnfreezeReqStart_ms = 0;
+    } else {
+        // counting time to allow updates
+        if (windUnfreezeReqStart_ms == 0) { windUnfreezeReqStart_ms = now_ms; }
+        windFreezeReqStart_ms = 0;
+    }
+
+    // disable updates
+    if (!windFrozen &&
+        windFreezeRequested &&
+        windFreezeReqStart_ms &&
+        (now_ms - windFreezeLastToggle_ms) >= WIND_FREEZE_DWELL_MS) {
+
+        windFrozen = true;
+        windFreezeLastToggle_ms = now_ms;
+        GCS_SEND_TEXT(MAV_SEVERITY_INFO, "EKF3: disable wind updates");
+    }
+
+    // allow updates
+    if (windFrozen &&
+        !windFreezeRequested &&
+        windUnfreezeReqStart_ms &&
+        (now_ms - windUnfreezeReqStart_ms) >= WIND_FREEZE_DWELL_MS &&
+        (now_ms - windFreezeLastToggle_ms) >= WIND_FREEZE_DWELL_MS) {
+
+        windFrozen = false;
+        windFreezeLastToggle_ms = now_ms;
+        GCS_SEND_TEXT(MAV_SEVERITY_INFO, "EKF3: enable wind updates");
+    }
+
+    return !windFrozen;
+}
