@@ -453,6 +453,7 @@ private:
     AP_Float _gpsVAccThreshold;     // vertical accuracy threshold to use GPS as an altitude source
     AP_Int32 _options;              // bit mask of processing options
     AP_Int32 _yawResetMinIntervalMs; // minimum interval between GPS-velocity-based yaw resets (ms). 0 = no interval limit
+    AP_Int16 _yawResetMaxCount;     // maximum GPS-velocity yaw resets while inhibition is active (0 = unlimited)
 
     // enum for processing options
     enum class Options : uint32_t {

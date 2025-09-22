@@ -749,6 +749,14 @@ const AP_Param::GroupInfo NavEKF3::var_info2[] = {
     // @User: Advanced
     AP_GROUPINFO("YAWRST_MS", 12, NavEKF3, _yawResetMinIntervalMs, -1),
 
+    // @Param: YAWRST_MAX
+    // @DisplayName: Max GPS-velocity yaw resets
+    // @Description: Maximum number of GPS-velocity-based yaw resets allowed while inhibition is active
+    // @Range: -1 100
+    // @Increment: 1
+    // @User: Advanced
+    AP_GROUPINFO("YAWRST_MAX", 13, NavEKF3, _yawResetMaxCount, -1),
+
     AP_GROUPEND
 };
 
