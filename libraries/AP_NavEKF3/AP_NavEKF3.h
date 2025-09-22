@@ -448,6 +448,18 @@ private:
     AP_Int8 _primary_core;          // initial core number
     AP_Enum<LogLevel> _log_level;   // log verbosity level
     AP_Float _gpsVAccThreshold;     // vertical accuracy threshold to use GPS as an altitude source
+    AP_Int32 _options;              // bit mask of processing options
+
+    // enum for processing options
+    enum class Options : uint32_t {
+        Reserved                       = (1U << 0),
+        AllowWindEstimationFreeze      = (1U << 1), // when set, wind updates can be stopped
+    };
+
+    // returns true if the given option bit is set in EK3_OPTIONS
+    bool option_is_enabled(Options option) const {
+        return (static_cast<uint32_t>(_options.get()) & static_cast<uint32_t>(option)) != 0U;
+    }
 
 // Possible values for _flowUse
 #define FLOW_USE_NONE    0
