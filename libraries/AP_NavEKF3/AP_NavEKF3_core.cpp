@@ -342,6 +342,7 @@ void NavEKF3_core::InitialiseVariables()
     velOffsetNED.zero();
     posOffsetNED.zero();
     ZERO_FARRAY(velPosObs);
+    gpsVelLane = false;
 
     // range beacon fusion variables
 #if EK3_FEATURE_BEACON_FUSION

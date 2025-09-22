@@ -1027,6 +1027,9 @@ private:
 
     bool getGPSLLH(Location &loc) const;
 
+    // returns true if this EKF lane uses GPS velocity as XY aiding source
+    bool isGpsVelLane() const { return gpsVelLane; }
+
     // Variables
     bool statesInitialised;         // boolean true when filter states have been initialised
     bool magHealth;                 // boolean true if magnetometer has passed innovation consistency check
@@ -1200,6 +1203,7 @@ private:
     uint32_t firstInitTime_ms;      // First time the initialise function was called (msec)
     uint32_t lastInitFailReport_ms; // Last time the buffer initialisation failure report was sent (msec)
     ftype tiltErrorVariance;        // variance of the angular uncertainty measured perpendicular to the vertical (rad^2)
+    bool gpsVelLane;                //  true if this lane currently uses GPS velocity for XY aiding
 
     // variables used to calculate a vertical velocity that is kinematically consistent with the vertical position
     struct {

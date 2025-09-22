@@ -484,6 +484,9 @@ void NavEKF3_core::setAidingMode()
         ResetPosition(posResetSource);
     }
 
+    // Update XY aiding source flag for this lane: true if GPS is selected for velocity XY
+    gpsVelLane = frontend->sources.useVelXYSource(AP_NavEKF_Source::SourceXY::GPS);
+
 }
 
 // Check the tilt and yaw alignmnent status
