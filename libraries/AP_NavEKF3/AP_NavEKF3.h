@@ -452,6 +452,7 @@ private:
     AP_Enum<LogLevel> _log_level;   // log verbosity level
     AP_Float _gpsVAccThreshold;     // vertical accuracy threshold to use GPS as an altitude source
     AP_Int32 _options;              // bit mask of processing options
+    AP_Int32 _yawResetMinIntervalMs; // minimum interval between GPS-velocity-based yaw resets (ms). 0 = no interval limit
 
     // enum for processing options
     enum class Options : uint32_t {

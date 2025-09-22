@@ -741,6 +741,14 @@ const AP_Param::GroupInfo NavEKF3::var_info2[] = {
     // @User: Advanced
     AP_GROUPINFO("OPTIONS", 11, NavEKF3, _options, 0),
 
+    // @Param: YAWRST_MS
+    // @DisplayName: Min interval between GPS-velocity yaw resets
+    // @Description: Minimum time (ms) that must elapse between two successive yaw resets based on GPS velocity
+    // @Units: ms
+    // @Range: -1 60000
+    // @User: Advanced
+    AP_GROUPINFO("YAWRST_MS", 12, NavEKF3, _yawResetMinIntervalMs, -1),
+
     AP_GROUPEND
 };
 
