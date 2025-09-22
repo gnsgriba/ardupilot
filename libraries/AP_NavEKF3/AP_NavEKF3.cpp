@@ -737,7 +737,7 @@ const AP_Param::GroupInfo NavEKF3::var_info2[] = {
     // @Param: OPTIONS
     // @DisplayName: Optional EKF behaviour
     // @Description: This controls optional EKF behaviour
-    // @Bitmask: 0:reserved,1:AllowWindEstimationFreeze
+    // @Bitmask: 0:reserved,1:AllowWindEstimationFreeze,2:AllowYawResetInhibit
     // @User: Advanced
     AP_GROUPINFO("OPTIONS", 11, NavEKF3, _options, 0),
 

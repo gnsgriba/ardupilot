@@ -457,6 +457,7 @@ private:
     enum class Options : uint32_t {
         Reserved                       = (1U << 0),
         AllowWindEstimationFreeze      = (1U << 1), // when set, wind updates can be stopped
+        AllowYawResetInhibit           = (1U << 2), // allow inhibition of GPS-vel yaw resets
     };
 
     // returns true if the given option bit is set in EK3_OPTIONS
