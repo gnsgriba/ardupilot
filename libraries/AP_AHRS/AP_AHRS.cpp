@@ -3550,6 +3550,29 @@ bool AP_AHRS::get_location_from_home_offset(Location &loc, const Vector3p &offse
     return true;
 }
 
+// request to enable or disable wind estimation updates
+void AP_AHRS::request_freeze_wind_estimation(bool req)
+{
+    if (!option_set(Options::ALLOW_WIND_ESTIMATION_FREEZE)) {
+        if (_freeze_wind_requested) {
+            _freeze_wind_requested = false;
+            GCS_SEND_TEXT(MAV_SEVERITY_INFO, "DCM: enable wind updates");
+        }
+        return;
+    }
+
+    if (_freeze_wind_requested == req) {
+        return;
+    }
+    _freeze_wind_requested = req;
+
+    if (_freeze_wind_requested) {
+        GCS_SEND_TEXT(MAV_SEVERITY_INFO, "DCM: disable wind updates");
+    } else {
+        GCS_SEND_TEXT(MAV_SEVERITY_INFO, "DCM: enable wind updates");
+    }
+}
+
 // singleton instance
 AP_AHRS *AP_AHRS::_singleton;
 

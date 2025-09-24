@@ -676,6 +676,12 @@ public:
     // get access to an EKFGSF_yaw estimator
     const EKFGSF_yaw *get_yaw_estimator(void) const;
 
+    // enable/disable wind estimation updates (hold last value when disabled)
+    void request_freeze_wind_estimation(bool req);
+
+    // true if wind estimation updates are currently disabled by request
+    bool freeze_wind_estimation_requested() const { return _freeze_wind_requested; }
+
 private:
 
     // roll/pitch/yaw euler angles, all in radians
@@ -840,6 +846,9 @@ private:
      * wind estimation support
      */
     bool wind_estimation_enabled;
+
+     // true if wind estimation updates are disabled by request
+     bool _freeze_wind_requested = false;
 
     /*
      * fly_forward is set by the vehicles to indicate the vehicle

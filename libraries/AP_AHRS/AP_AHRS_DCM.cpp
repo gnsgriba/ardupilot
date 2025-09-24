@@ -966,6 +966,12 @@ void AP_AHRS_DCM::estimate_wind(void)
     if (!AP::ahrs().get_wind_estimation_enabled()) {
         return;
     }
+
+    // skip wind estimation updates if disabled by request
+    if (AP::ahrs().freeze_wind_estimation_requested()) {
+        return;
+    }
+
     const Vector3f &velocity = _last_velocity;
 
     // this is based on the wind speed estimation code from MatrixPilot by
