@@ -127,7 +127,7 @@ const AP_Param::GroupInfo AP_Airspeed::var_info[] = {
     // @DisplayName: Airspeed options bitmask
     // @Description: Bitmask of options to use with airspeed. 0:Disable use based on airspeed/groundspeed mismatch (see ARSPD_WIND_MAX), 1:Automatically reenable use based on airspeed/groundspeed mismatch recovery (see ARSPD_WIND_MAX) 2:Disable voltage correction, 3:Check that the airspeed is statistically consistent with the navigation EKF vehicle and wind velocity estimates using EKF3 (requires AHRS_EKF_TYPE = 3)
     // @Description{Copter, Blimp, Rover, Sub}: This parameter and function is not used by this vehicle. Always set to 0.
-    // @Bitmask: 0:SpeedMismatchDisable, 1:AllowSpeedMismatchRecovery, 2:DisableVoltageCorrection, 3:UseEkf3Consistency
+    // @Bitmask: 0:SpeedMismatchDisable, 1:AllowSpeedMismatchRecovery, 2:DisableVoltageCorrection, 3:UseEkf3Consistency, 4:AllowInhibitGpsAirspeedCheck
     // @User: Advanced
     AP_GROUPINFO("_OPTIONS", 21, AP_Airspeed, _options, OPTIONS_DEFAULT),
 

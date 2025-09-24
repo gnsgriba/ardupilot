@@ -171,6 +171,7 @@ public:
         ON_FAILURE_AHRS_WIND_MAX_RECOVERY_DO_REENABLE         = (1<<1),   // If set then automatically enable the airspeed sensor use when healthy again.
         DISABLE_VOLTAGE_CORRECTION                            = (1<<2),
         USE_EKF_CONSISTENCY                                   = (1<<3),
+        ALLOW_INHIBIT_GPS_AIRSPEED_CHECK                      = (1<<4),   // allow skipping GPS-vs-airspeed mismatch check in health logic by request
     };
 
     enum airspeed_type {
