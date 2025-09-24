@@ -1268,6 +1268,8 @@ public:
     bool set_land_descent_rate(float descent_rate) override;
 #endif // AP_SCRIPTING_ENABLED
 
+    // returns true when VTOL props are considered active
+    bool is_vtol_active() const override;
 };
 
 extern Plane plane;

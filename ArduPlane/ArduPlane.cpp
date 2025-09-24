@@ -976,4 +976,19 @@ void Plane::precland_update(void)
 }
 #endif
 
+// returns true when VTOL props are considered active
+bool Plane::is_vtol_active() const
+{
+#if HAL_QUADPLANE_ENABLED
+    if (!quadplane.available()) {
+        return false;
+    }
+
+    return quadplane.is_vtol_active();
+
+#else
+    return false;
+#endif
+}
+
 AP_HAL_MAIN_CALLBACKS(&plane);
