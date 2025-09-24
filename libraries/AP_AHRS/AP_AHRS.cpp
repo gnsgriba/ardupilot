@@ -189,7 +189,7 @@ const AP_Param::GroupInfo AP_AHRS::var_info[] = {
     // @Param: OPTIONS
     // @DisplayName: Optional AHRS behaviour
     // @Description: This controls optional AHRS behaviour. Setting DisableDCMFallbackFW will change the AHRS behaviour for fixed wing aircraft in fly-forward flight to not fall back to DCM when the EKF stops navigating. Setting DisableDCMFallbackVTOL will change the AHRS behaviour for fixed wing aircraft in non fly-forward (VTOL) flight to not fall back to DCM when the EKF stops navigating. 
-    // @Bitmask: 0:DisableDCMFallbackFW, 1:DisableDCMFallbackVTOL
+    // @Bitmask: 0:DisableDCMFallbackFW, 1:DisableDCMFallbackVTOL, 2:AllowWindEstimationFreeze
     // @User: Advanced
     AP_GROUPINFO("OPTIONS",  18, AP_AHRS, _options, 0),
     
