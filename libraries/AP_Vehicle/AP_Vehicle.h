@@ -276,6 +276,9 @@ public:
      */
     virtual bool get_rate_ef_targets(Vector3f& rate_ef_targets) const { return false; }
 
+    // returns true when VTOL props are considered active
+    virtual bool is_vtol_active() const { return false; }
+
 protected:
 
     virtual void init_ardupilot() = 0;
