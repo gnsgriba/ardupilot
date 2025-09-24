@@ -192,6 +192,9 @@ public:
     // Get pilot throttle input with deadzone, this will return 50% throttle in failsafe!
     float get_throttle_input() const;
 
+    // returns true when VTOL props are considered active
+    bool is_vtol_active() const;
+
 private:
     AP_AHRS &ahrs;
 

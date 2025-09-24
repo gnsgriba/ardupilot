@@ -4816,4 +4816,29 @@ bool QuadPlane::allow_forward_throttle_in_vtol_mode() const
     return in_vtol_mode() && motors->armed() && (motors->get_desired_spool_state() != AP_Motors::DesiredSpoolState::SHUT_DOWN);
 }
 
+// returns true when VTOL props are considered active
+// "Active" means: we are in a VTOL-related phase (Q-modes, assist, transition,
+// VTOL takeoff/landing, or airbrake) OR motors are armed AND actually spooled.
+bool QuadPlane::is_vtol_active() const
+{
+    if (!available() || motors == nullptr) {
+        return false;
+    }
+
+    const bool vtol_phase =
+        in_vtol_mode() ||
+        in_assisted_flight() ||
+        in_transition() ||
+        in_vtol_takeoff() ||
+        in_vtol_land_sequence()||
+        in_vtol_airbrake();
+
+    const bool spool_on =
+        (motors->get_spool_state() != AP_Motors::SpoolState::SHUT_DOWN) &&
+        (motors->get_desired_spool_state() != AP_Motors::DesiredSpoolState::SHUT_DOWN);
+
+    return (motors->armed() && spool_on) ||
+        (plane.arming.is_armed() && vtol_phase);
+}
+
 #endif  // HAL_QUADPLANE_ENABLED
