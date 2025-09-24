@@ -34,7 +34,7 @@
 #include <AP_SerialManager/AP_SerialManager.h>
 #include <AP_HAL/utility/sparse-endian.h>
 #include <AP_Common/Bitmask.h>
-#include <AP_Vehicle/AP_Vehicle_Type.h>
+#include <AP_Vehicle/AP_Vehicle.h>
 
 extern const AP_HAL::HAL &hal;
 
@@ -1195,6 +1195,12 @@ void AP_ExternalAHRS_InertialLabs::send_EAHRS_status_msg(uint16_t &last_state,
 // Transmit airspeed to the IL INS
 void AP_ExternalAHRS_InertialLabs::make_tx_packet(uint8_t *packet) const
 {
+    // Check if the VTOL props are considered active
+    const AP_Vehicle* vehicle = AP::vehicle();
+    if (vehicle != nullptr && vehicle->is_vtol_active()) {
+        return;
+    }
+
     uint8_t *tmp_ptr = packet;
     uint8_t hdr[] = {0xAA, 0x55, 0x01, 0x62}; // 0xAA 0x55 - packet header, 0x01 - packet type, 0x62 - packet ID
     int16_t new_data;
