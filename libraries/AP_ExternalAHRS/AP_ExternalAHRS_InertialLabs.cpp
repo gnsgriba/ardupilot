@@ -564,6 +564,11 @@ bool AP_ExternalAHRS_InertialLabs::check_uart()
             gps_data.track_over_ground_raw = static_cast<int32_t>(ilab_gps_data.track_over_ground*100.0f);
             gps_data.gps_raw_status = ilab_gps_data.gnss_sol_status;
 
+            // update INS status: when the INS is not using GPS (no GPS aiding),
+            // enable the GPS-constrained mode in ArduPilot nav filters.
+            const bool ins_gps_aiding_active = (ilab_ins_data.ins_sol_status == 0);
+            AP::ahrs().set_gps_constrained(!ins_gps_aiding_active);
+
             uint8_t instance;
             if (AP::gps().get_first_external_instance(instance)) {
                 AP::gps().handle_external(gps_data, instance);
