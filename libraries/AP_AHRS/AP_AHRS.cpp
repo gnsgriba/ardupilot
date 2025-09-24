@@ -39,6 +39,7 @@
 #include <GCS_MAVLink/GCS.h>
 #include <AP_InertialSensor/AP_InertialSensor.h>
 #include <AP_CustomRotations/AP_CustomRotations.h>
+#include <AP_Airspeed/AP_Airspeed.h>
 #if CONFIG_HAL_BOARD == HAL_BOARD_SITL
 #include <SITL/SITL.h>
 #endif
@@ -3571,6 +3572,30 @@ void AP_AHRS::request_freeze_wind_estimation(bool req)
     } else {
         GCS_SEND_TEXT(MAV_SEVERITY_INFO, "DCM: enable wind updates");
     }
+}
+
+// enable/disable a GPS-constrained mode for estimation logic.
+// true  -> apply GPS-related gating
+// false -> restore defaults
+void AP_AHRS::set_gps_constrained(bool enable)
+{
+#if HAL_NAVEKF3_AVAILABLE
+    // EKF3: turn wind updates on/off; inhibit/allow yaw resets that use GPS velocity
+    EKF3.requestFreezeWindEstimation(enable);
+    EKF3.requestInhibitGpsVelYawReset(enable);
+#endif
+
+#if AP_AHRS_DCM_ENABLED
+    // DCM: turn wind updates on/off
+    request_freeze_wind_estimation(enable);
+#endif
+
+#if AP_AIRSPEED_ENABLED
+    // Airspeed: ignore/consider the GPS-to-EAS mismatch health check
+    if (auto* arsp = AP::airspeed()) {
+        arsp->request_inhibit_gps_mismatch_check(enable);
+    }
+#endif
 }
 
 // singleton instance

@@ -682,6 +682,9 @@ public:
     // true if wind estimation updates are currently disabled by request
     bool freeze_wind_estimation_requested() const { return _freeze_wind_requested; }
 
+    // enable/disable a GPS-constrained mode for estimation logic
+    void set_gps_constrained(bool enable);
+
 private:
 
     // roll/pitch/yaw euler angles, all in radians
