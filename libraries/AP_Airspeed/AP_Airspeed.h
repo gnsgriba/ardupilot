@@ -227,6 +227,12 @@ public:
     // get aggregate calibration state for the Airspeed library:
     CalibrationState get_calibration_state() const;
 
+    // request to skip the GPS-vs-airspeed mismatch check in the health logic
+    void request_inhibit_gps_mismatch_check(bool req);
+
+    // returns the current inhibition state
+    bool inhibit_gps_mismatch_check_requested() const { return _inhibit_gps_airspeed_check; }
+
 private:
     static AP_Airspeed *_singleton;
 
@@ -291,6 +297,9 @@ private:
     uint8_t num_sensors;
 
     uint32_t _log_bit = -1;     // stores which bit in LOG_BITMASK is used to indicate we should log airspeed readings
+
+    // runtime gate for the GPS-vs-airspeed mismatch check
+    bool _inhibit_gps_airspeed_check = false;
 
     void read(uint8_t i);
     // return the differential pressure in Pascal for the last airspeed reading for the requested instance

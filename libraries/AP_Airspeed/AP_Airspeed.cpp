@@ -940,6 +940,30 @@ bool AP_Airspeed::get_hygrometer(uint8_t i, uint32_t &last_sample_ms, float &tem
 }
 #endif // AP_AIRSPEED_HYGROMETER_ENABLE
 
+// request to skip the GPS-vs-airspeed mismatch check in the health logic
+void AP_Airspeed::request_inhibit_gps_mismatch_check(bool req)
+{
+    if ((AP_Airspeed::OptionsMask::ALLOW_INHIBIT_GPS_AIRSPEED_CHECK & _options) == 0) {
+        if (_inhibit_gps_airspeed_check) {
+            _inhibit_gps_airspeed_check = false;
+            GCS_SEND_TEXT(MAV_SEVERITY_INFO, "Airspeed: enable GPS mismatch speed check");
+        }
+        return;
+    }
+
+    if (_inhibit_gps_airspeed_check == req) {
+        return;
+    }
+
+    _inhibit_gps_airspeed_check = req;
+
+    if (_inhibit_gps_airspeed_check) {
+        GCS_SEND_TEXT(MAV_SEVERITY_INFO, "Airspeed: disable GPS mismatch speed check");
+    } else {
+        GCS_SEND_TEXT(MAV_SEVERITY_INFO, "Airspeed: enable GPS mismatch speed check");
+    }
+}
+
 #else  // build type is not appropriate; provide a dummy implementation:
 const AP_Param::GroupInfo AP_Airspeed::var_info[] = { AP_GROUPEND };
 
@@ -952,6 +976,7 @@ bool AP_Airspeed::enabled(uint8_t i) const { return false; }
 bool AP_Airspeed::healthy(uint8_t i) const { return false; }
 float AP_Airspeed::get_airspeed(uint8_t i) const { return 0.0; }
 float AP_Airspeed::get_differential_pressure(uint8_t i) const { return 0.0; }
+void AP_Airspeed::request_inhibit_gps_mismatch_check(bool) {}
 
 #if AP_AIRSPEED_MSP_ENABLED
 void AP_Airspeed::handle_msp(const MSP::msp_airspeed_data_message_t &pkt) {}

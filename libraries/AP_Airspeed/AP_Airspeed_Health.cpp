@@ -68,10 +68,17 @@ void AP_Airspeed::check_sensor_ahrs_wind_max_failures(uint8_t i)
         }
         data_is_inconsistent = state[i].failures.test_ratio > gate_size;
     }
-    
-    const auto gps_speed = gps.velocity().length();
-    const float speed_diff = fabsf(state[i].airspeed-gps_speed);
-    const bool data_is_implausible = is_positive(_wind_max) && speed_diff > _wind_max;
+
+    // Defaults when inhibited: no diff/WARN contribution to health logic
+    float speed_diff = 0.0f;
+    bool data_is_implausible = false;
+
+    if (!inhibit_gps_mismatch_check_requested()) {
+        const auto gps_speed = gps.velocity().length();
+        speed_diff = fabsf(state[i].airspeed-gps_speed);
+        data_is_implausible = is_positive(_wind_max) && speed_diff > _wind_max;
+    }
+
     // update health_probability with LowPassFilter
     if (data_is_implausible || data_is_inconsistent) {
         // bad, decay fast
@@ -108,10 +115,13 @@ void AP_Airspeed::check_sensor_ahrs_wind_max_failures(uint8_t i)
             wind_warn = _wind_max;
         }
 
-        if (is_positive(wind_warn) && (speed_diff > wind_warn) && ((now_ms - state[i].failures.last_warn_ms) > 15000)) {
-            state[i].failures.last_warn_ms = now_ms;
-            GCS_SEND_TEXT(MAV_SEVERITY_WARNING, "Airspeed %d warning %0.1fm/s air to gnd speed diff", i+1, speed_diff);
+        if (!inhibit_gps_mismatch_check_requested()) {
+            if (is_positive(wind_warn) && (speed_diff > wind_warn) && ((now_ms - state[i].failures.last_warn_ms) > 15000)) {
+                state[i].failures.last_warn_ms = now_ms;
+                GCS_SEND_TEXT(MAV_SEVERITY_WARNING, "Airspeed %d warning %0.1fm/s air to gnd speed diff", i+1, speed_diff);
+            }
         }
+
 
     // if Re-Enable options is allowed, and sensor is disabled but was previously enabled, and is probably healthy
     } else if (((AP_Airspeed::OptionsMask::ON_FAILURE_AHRS_WIND_MAX_RECOVERY_DO_REENABLE & _options) != 0) &&
