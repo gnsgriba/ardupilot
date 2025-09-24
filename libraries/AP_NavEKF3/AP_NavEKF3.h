@@ -368,6 +368,9 @@ public:
     // control wind estimation updates (true = disable, false = allow)
     void requestFreezeWindEstimation(bool v);
 
+    // control GPS-velocity yaw resets (true = inhibit, false = allow)
+    void requestInhibitGpsVelYawReset(bool v);
+
 private:
     uint8_t num_cores; // number of allocated cores
     uint8_t primary;   // current primary core

@@ -2106,3 +2106,13 @@ void NavEKF3::requestFreezeWindEstimation(bool v)
         core[i].requestFreezeWindEstimation(v);
     }
 }
+
+// forward GPS-velocity yaw-reset control to all EKF cores
+void NavEKF3::requestInhibitGpsVelYawReset(bool v)
+{
+    if (!core) { return; }
+
+    for (uint8_t i = 0; i < num_cores; i++) {
+        core[i].requestInhibitGpsVelYawReset(v);
+    }
+}

@@ -348,6 +348,10 @@ void NavEKF3_core::InitialiseVariables()
     windUnfreezeReqStart_ms = 0;
     windFreezeReqStart_ms = 0;
     windFreezeLastToggle_ms = 0;
+    inhibitYawResetRequested = false;
+    gpsVelYawResetInhibited = false;
+    gpsVelYawResetCount = 0;
+    lastGpsVelYawReset_ms = 0;
 
     // range beacon fusion variables
 #if EK3_FEATURE_BEACON_FUSION

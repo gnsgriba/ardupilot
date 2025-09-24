@@ -137,6 +137,12 @@ void NavEKF3_core::controlMagYawReset()
 // vector from GPS. It is used to align the yaw angle after launch or takeoff.
 void NavEKF3_core::realignYawGPS(bool emergency_reset)
 {
+    // Emergency bypass; otherwise apply inhibitor
+    if (!emergency_reset && !gpsVelYawResetAllowed()) {
+        gpsYawResetRequest = false;
+        return;
+    }
+
     // get quaternion from existing filter states and calculate roll, pitch and yaw angles
     Vector3F eulerAngles;
     stateStruct.quat.to_euler(eulerAngles.x, eulerAngles.y, eulerAngles.z);
@@ -179,6 +185,11 @@ void NavEKF3_core::realignYawGPS(bool emergency_reset)
                 rotationOrder order;
                 bestRotationOrder(order);
                 resetQuatStateYawOnly(gpsYaw, gps_yaw_variance, order);
+
+                // Successful GPS-velocity yaw reset (COG-based)
+                if (!emergency_reset) {
+                    countGpsVelYawReset();
+                }
 
                 // reset the velocity and position states as they will be inaccurate due to bad yaw
                 ResetVelocity(resetDataSource::GPS);
@@ -1543,6 +1554,11 @@ bool NavEKF3_core::learnMagBiasFromGPS(void)
 // Reset states using yaw from EKF-GSF and velocity and position from GPS
 bool NavEKF3_core::EKFGSF_resetMainFilterYaw(bool emergency_reset)
 {
+    // Emergency bypass; otherwise apply inhibitor
+    if (!emergency_reset && !gpsVelYawResetAllowed()) {
+        return false;
+    }
+
     // Don't do a reset unless permitted by the EK3_GSF_USE_MASK and EK3_GSF_RUN_MASK parameter masks
     if ((yawEstimator == nullptr)
         || !(frontend->_gsfUseMask & (1U<<core_index))) {
@@ -1580,6 +1596,11 @@ bool NavEKF3_core::EKFGSF_resetMainFilterYaw(bool emergency_reset)
 
         // record the yaw reset event
         recordYawReset();
+
+        // Successful GPS-velocity yaw reset (GSF-based)
+        if (!emergency_reset) {
+            countGpsVelYawReset();
+        }
 
         // reset velocity and position states to GPS - if yaw is fixed then the filter should start to operate correctly
         ResetVelocity(resetDataSource::DEFAULT);

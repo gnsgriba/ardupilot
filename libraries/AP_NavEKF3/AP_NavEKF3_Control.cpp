@@ -839,6 +839,19 @@ void NavEKF3_core::requestFreezeWindEstimation(bool v)
     windFreezeRequested = v;
 }
 
+// runtime request to inhibit/allow GPS-velocity yaw resets (true = inhibit)
+void NavEKF3_core::requestInhibitGpsVelYawReset(bool v)
+{
+    const bool prev_inhibit = inhibitYawResetRequested;
+    inhibitYawResetRequested = v;
+
+    // On transition from false -> true, reset counters to start a fresh window next time
+    if (!prev_inhibit && inhibitYawResetRequested) {
+        gpsVelYawResetCount   = 0;
+        lastGpsVelYawReset_ms = 0;
+    }
+}
+
 // Gate for wind estimation updates (based on windFreezeRequested).
 // Behaviour:
 //  - If EK3_OPTIONS bit AllowWindEstimationFreeze is NOT set -> updates always allowed.
@@ -903,4 +916,89 @@ bool NavEKF3_core::windEstimationAllowed()
     }
 
     return !windFrozen;
+}
+
+// Gate for GPS-velocity yaw resets.
+// Behaviour:
+//  - If this EKF lane is not using GPS XY velocity -> allowed.
+//  - If EK3_OPTIONS bit AllowYawResetInhibit is not set -> allowed.
+//  - If the bit IS set and inhibitYawResetRequested == false -> allowed.
+//  - If inhibitYawResetRequested == true -> apply both limits:
+//      * YAWRST_MAX  = maximum number of GPS-velocity yaw resets
+//      * YAWRST_MIN_MS  = minimum interval between successive GPS-velocity yaw resets
+// Returns true if GPS-velocity yaw resets are currently allowed.
+bool NavEKF3_core::gpsVelYawResetAllowed()
+{
+    if (!isGpsVelLane()) { return true; }
+
+    const bool opt_enabled =
+        (frontend != nullptr) &&
+        frontend->option_is_enabled(NavEKF3::Options::AllowYawResetInhibit);
+
+    if (!opt_enabled) {
+        if (gpsVelYawResetInhibited) {
+            GCS_SEND_TEXT(MAV_SEVERITY_INFO, "EKF3: allow GPS yaw reset");
+        }
+        gpsVelYawResetInhibited = false;
+        gpsVelYawResetCount     = 0;
+        lastGpsVelYawReset_ms   = 0;
+        return true;
+    }
+
+    if (!inhibitYawResetRequested) {
+        if (gpsVelYawResetInhibited) {
+            GCS_SEND_TEXT(MAV_SEVERITY_INFO, "EKF3: allow GPS yaw reset");
+            gpsVelYawResetInhibited = false;
+        }
+        return true;
+    }
+
+    const int32_t max_count = frontend->_yawResetMaxCount;
+    const int32_t min_interval_ms = frontend->_yawResetMinIntervalMs;
+
+    bool blocked = false;
+
+    if (max_count == 0 && min_interval_ms == 0) {
+        blocked = true;
+    } else {
+        if (max_count > 0 && gpsVelYawResetCount >= static_cast<uint8_t>(max_count)) {
+            blocked = true;
+        }
+
+        if (!blocked && min_interval_ms > 0 && gpsVelYawResetCount > 0U) {
+            const uint32_t dt_ms = imuSampleTime_ms - lastGpsVelYawReset_ms;
+            if (dt_ms < static_cast<uint32_t>(min_interval_ms)) {
+                blocked = true;
+            }
+        }
+    }
+
+    if (blocked != gpsVelYawResetInhibited) {
+        if (blocked ) {
+            GCS_SEND_TEXT(MAV_SEVERITY_INFO, "EKF3: inhibit GPS yaw reset");
+        } else {
+            GCS_SEND_TEXT(MAV_SEVERITY_INFO, "EKF3: allow GPS yaw reset");
+        }
+        gpsVelYawResetInhibited = blocked ;
+    }
+
+    return !blocked;
+}
+
+// increments counter and updates timestamp for a successful GPS-velocity yaw reset when inhibition control is active
+void NavEKF3_core::countGpsVelYawReset()
+{
+    const bool inhibit_active = (frontend != nullptr) &&
+        frontend->option_is_enabled(NavEKF3::Options::AllowYawResetInhibit) &&
+        inhibitYawResetRequested;
+
+    if (!inhibit_active) {
+        return;
+    }
+
+    if (gpsVelYawResetCount < UINT8_MAX) {
+        gpsVelYawResetCount++;
+    }
+
+    lastGpsVelYawReset_ms = imuSampleTime_ms;
 }

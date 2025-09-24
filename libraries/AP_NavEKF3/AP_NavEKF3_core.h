@@ -457,6 +457,9 @@ public:
     // control wind estimation updates (true = disabled, false = enabled)
     void requestFreezeWindEstimation(bool v);
 
+    // control GPS-velocity yaw resets (true = inhibit, false = allow)
+    void requestInhibitGpsVelYawReset(bool v);
+
 private:
     EKFGSF_yaw *yawEstimator;
     AP_DAL &dal;
@@ -1039,6 +1042,12 @@ private:
     // return true if wind estimation updates are currently allowed
     bool windEstimationAllowed();
 
+    // return true if GPS-velocity yaw resets are allowed
+    bool gpsVelYawResetAllowed();
+
+    // increments counter and updates timestamp for a successful GPS-velocity yaw reset when inhibition control is active
+    void countGpsVelYawReset();
+
     // Variables
     bool statesInitialised;         // boolean true when filter states have been initialised
     bool magHealth;                 // boolean true if magnetometer has passed innovation consistency check
@@ -1218,6 +1227,10 @@ private:
     uint32_t windUnfreezeReqStart_ms; // start time of "allow wind estimation updates" request
     uint32_t windFreezeReqStart_ms;   // start time of "stop wind estimation updates" request
     uint32_t windFreezeLastToggle_ms; // last time wind estimation update state changed
+    bool inhibitYawResetRequested;  // request to inhibit GPS-velocity yaw resets (true = inhibit, false = allow)
+    bool gpsVelYawResetInhibited;   // current inhibited state for GPS-velocity yaw resets
+    uint8_t gpsVelYawResetCount;    // number of GPS-velocity yaw resets performed while inhibition is active
+    uint32_t lastGpsVelYawReset_ms; // timestamp (ms) of the last GPS-velocity yaw reset
 
     // variables used to calculate a vertical velocity that is kinematically consistent with the vertical position
     struct {
