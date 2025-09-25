@@ -872,8 +872,8 @@ bool NavEKF3_core::windEstimationAllowed()
     const uint32_t now_ms = AP_HAL::millis();
 
     if (!opt_enabled) {
-        if (windFrozen) {
-            GCS_SEND_TEXT(MAV_SEVERITY_INFO, "EKF3: enable wind updates");
+        if (windFrozen && isPrimaryCore()) {
+            GCS_SEND_TEXT(MAV_SEVERITY_INFO, "EKF3 IMU%u: enable wind updates", (unsigned)imu_index);
         }
         windFrozen              = false;
         windFreezeReqStart_ms   = 0;
@@ -900,7 +900,9 @@ bool NavEKF3_core::windEstimationAllowed()
 
         windFrozen = true;
         windFreezeLastToggle_ms = now_ms;
-        GCS_SEND_TEXT(MAV_SEVERITY_INFO, "EKF3: disable wind updates");
+        if (isPrimaryCore()) {
+            GCS_SEND_TEXT(MAV_SEVERITY_INFO, "EKF3 IMU%u: disable wind updates", (unsigned)imu_index);
+        }
     }
 
     // allow updates
@@ -912,7 +914,9 @@ bool NavEKF3_core::windEstimationAllowed()
 
         windFrozen = false;
         windFreezeLastToggle_ms = now_ms;
-        GCS_SEND_TEXT(MAV_SEVERITY_INFO, "EKF3: enable wind updates");
+        if (isPrimaryCore()) {
+            GCS_SEND_TEXT(MAV_SEVERITY_INFO, "EKF3 IMU%u: enable wind updates", (unsigned)imu_index);
+        }
     }
 
     return !windFrozen;
