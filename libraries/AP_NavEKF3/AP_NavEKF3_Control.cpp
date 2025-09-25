@@ -940,8 +940,8 @@ bool NavEKF3_core::gpsVelYawResetAllowed()
         frontend->option_is_enabled(NavEKF3::Options::AllowYawResetInhibit);
 
     if (!opt_enabled) {
-        if (gpsVelYawResetInhibited) {
-            GCS_SEND_TEXT(MAV_SEVERITY_INFO, "EKF3: allow GPS yaw reset");
+        if (gpsVelYawResetInhibited && isPrimaryCore()) {
+            GCS_SEND_TEXT(MAV_SEVERITY_INFO, "EKF3 IMU%u: allow GPS yaw reset", (unsigned)imu_index);
         }
         gpsVelYawResetInhibited = false;
         gpsVelYawResetCount     = 0;
@@ -951,7 +951,9 @@ bool NavEKF3_core::gpsVelYawResetAllowed()
 
     if (!inhibitYawResetRequested) {
         if (gpsVelYawResetInhibited) {
-            GCS_SEND_TEXT(MAV_SEVERITY_INFO, "EKF3: allow GPS yaw reset");
+            if (isPrimaryCore()) {
+                GCS_SEND_TEXT(MAV_SEVERITY_INFO, "EKF3 IMU%u: allow GPS yaw reset", (unsigned)imu_index);
+            }
             gpsVelYawResetInhibited = false;
         }
         return true;
@@ -978,10 +980,12 @@ bool NavEKF3_core::gpsVelYawResetAllowed()
     }
 
     if (blocked != gpsVelYawResetInhibited) {
-        if (blocked ) {
-            GCS_SEND_TEXT(MAV_SEVERITY_INFO, "EKF3: inhibit GPS yaw reset");
-        } else {
-            GCS_SEND_TEXT(MAV_SEVERITY_INFO, "EKF3: allow GPS yaw reset");
+        if (isPrimaryCore()) {
+            if (blocked) {
+                GCS_SEND_TEXT(MAV_SEVERITY_INFO, "EKF3 IMU%u: inhibit GPS yaw reset", (unsigned)imu_index);
+            } else {
+                GCS_SEND_TEXT(MAV_SEVERITY_INFO, "EKF3 IMU%u: allow GPS yaw reset", (unsigned)imu_index);
+            }
         }
         gpsVelYawResetInhibited = blocked ;
     }
