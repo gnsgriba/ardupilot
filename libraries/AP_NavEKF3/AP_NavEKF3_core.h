@@ -1048,6 +1048,9 @@ private:
     // increments counter and updates timestamp for a successful GPS-velocity yaw reset when inhibition control is active
     void countGpsVelYawReset();
 
+    // returns true if this core is the current primary core (by IMU index)
+    bool isPrimaryCore() const;
+
     // Variables
     bool statesInitialised;         // boolean true when filter states have been initialised
     bool magHealth;                 // boolean true if magnetometer has passed innovation consistency check

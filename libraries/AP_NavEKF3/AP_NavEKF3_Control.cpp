@@ -1002,3 +1002,13 @@ void NavEKF3_core::countGpsVelYawReset()
 
     lastGpsVelYawReset_ms = imuSampleTime_ms;
 }
+
+// returns true if this core is the current primary core (by IMU index)
+bool NavEKF3_core::isPrimaryCore() const
+{
+    if (frontend == nullptr) {
+        return false;
+    }
+    const int8_t prim = frontend->getPrimaryCoreIMUIndex();
+    return (prim >= 0) && (imu_index == static_cast<uint8_t>(prim));
+}
