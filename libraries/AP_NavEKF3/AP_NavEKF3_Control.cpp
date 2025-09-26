@@ -390,6 +390,29 @@ void NavEKF3_core::setAidingMode()
         }
     }
 
+    // --- Runtime GPS XY aiding status
+    bool gps_vel_active = false;
+    bool gps_pos_active = false;
+
+    if (PV_AidingMode == AID_ABSOLUTE) {
+        const uint16_t minTestTime_ms = MIN(frontend->tiltDriftTimeMax_ms, MIN(frontend->posRetryTimeNoVel_ms,frontend->posRetryTimeUseVel_ms));
+
+        const bool gpsVelUsed_now = (imuSampleTime_ms - lastVelPassTime_ms) <= minTestTime_ms;
+        const bool posUsed_now    = (imuSampleTime_ms - lastPosPassTime_ms) <= minTestTime_ms;
+
+#if EK3_FEATURE_EXTERNAL_NAV
+        // count as GPS only if not using ExternalNav
+        gps_vel_active = gpsVelUsed_now && !useExtNavVel;
+        gps_pos_active = posUsed_now    && !extNavUsedForPos;
+#else
+        gps_vel_active = gpsVelUsed_now;
+        gps_pos_active = posUsed_now;
+#endif
+    }
+
+    // True if GPS XY velocity or position have been fused
+    gpsVelLane = (gps_vel_active || gps_pos_active);
+
     // check to see if we are starting or stopping aiding and set states and modes as required
     if (PV_AidingMode != PV_AidingModePrev) {
         // set various usage modes based on the condition when we start aiding. These are then held until aiding is stopped.
@@ -483,10 +506,6 @@ void NavEKF3_core::setAidingMode()
         ResetVelocity(velResetSource);
         ResetPosition(posResetSource);
     }
-
-    // Update XY aiding source flag for this lane: true if GPS is selected for velocity XY
-    gpsVelLane = frontend->sources.useVelXYSource(AP_NavEKF_Source::SourceXY::GPS);
-
 }
 
 // Check the tilt and yaw alignmnent status
