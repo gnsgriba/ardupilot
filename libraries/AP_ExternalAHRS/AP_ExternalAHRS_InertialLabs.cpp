@@ -1300,4 +1300,16 @@ void AP_ExternalAHRS_InertialLabs::send_eahrs_status_flag(GCS_MAVLINK &link) con
     mavlink_msg_eahrs_status_info_send_struct(link.get_chan(), &package);
 }
 
+// return Inertial Labs external INS/AHRS status
+// state1: USW1, state2: USW2, state3: INS nadigation status, state4: "GPS in use" flag
+bool AP_ExternalAHRS_InertialLabs::get_external_ahrs_status(AP_ExternalAHRS::DevStatus &dev_status) const
+{
+    dev_status.state1 = ilab_ins_data.unit_status;
+    dev_status.state2 = ilab_ins_data.unit_status2;
+    dev_status.state3 = static_cast<uint16_t>(ilab_ins_data.ins_sol_status);
+    dev_status.state4 = (ilab_ins_data.ins_sol_status == 0);
+
+    return true;
+}
+
 #endif  // AP_EXTERNAL_AHRS_INERTIAL_LABS_ENABLED
