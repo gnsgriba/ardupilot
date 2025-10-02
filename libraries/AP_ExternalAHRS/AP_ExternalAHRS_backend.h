@@ -46,6 +46,7 @@ public:
     virtual void handle_command(ExternalAHRS_command command, const ExternalAHRS_command_data &data) {};
     virtual bool get_wind_estimation(Vector3f &wind) { return false; }
     virtual void send_eahrs_status_flag(class GCS_MAVLINK &link) const {}
+    virtual bool get_external_ahrs_status(AP_ExternalAHRS::DevStatus &dev_status) const { return false; }
 
     // Check for new data.
     // This is used when there's not a separate thread for EAHRS.

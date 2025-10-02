@@ -196,6 +196,17 @@ public:
         ILAB_DISABLE_GPS_TRICK  = (1U << 5), // disable IL INS GNSS solution (fix type, number of satellites, DOP) substitution in GNSS-denied environments
     };
 
+    //
+    struct DevStatus {
+        uint16_t state1;
+        uint16_t state2;
+        uint16_t state3;
+        bool     state4;
+    };
+
+    // returns external AHRS status/health
+    bool get_external_ahrs_status(DevStatus &dev_status) const;
+
 protected:
 
     bool option_is_set(OPTIONS option) const { return (options.get() & int32_t(option)) != 0; }

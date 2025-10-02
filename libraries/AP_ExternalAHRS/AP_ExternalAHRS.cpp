@@ -386,6 +386,21 @@ void AP_ExternalAHRS::set_gnss_disable(bool disable) {
                    ExternalAHRS_command_data{});
 }
 
+// returns external AHRS status/health
+// dev_status cleared to defaults and, on success, filled with the latest status
+bool AP_ExternalAHRS::get_external_ahrs_status(DevStatus &dev_status) const
+{
+    dev_status.state1 = 0u;
+    dev_status.state2 = 0u;
+    dev_status.state3 = 0u;
+    dev_status.state4 = false;
+
+    if (backend) {
+        return backend->get_external_ahrs_status(dev_status);
+    }
+    return false;
+}
+
 namespace AP {
 
 AP_ExternalAHRS &externalAHRS()
