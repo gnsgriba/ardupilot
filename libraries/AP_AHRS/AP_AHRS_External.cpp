@@ -142,4 +142,9 @@ bool AP_AHRS_External::wind_estimate(Vector3f &ret) const
     return AP::externalAHRS().get_estimate_wind(ret);
 }
 
+bool AP_AHRS_External::get_external_ahrs_status(AP_ExternalAHRS::DevStatus &dev_status) const
+{
+    return AP::externalAHRS().get_external_ahrs_status(dev_status);
+}
+
 #endif

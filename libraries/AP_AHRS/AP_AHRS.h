@@ -685,6 +685,10 @@ public:
     // enable/disable a GPS-constrained mode for estimation logic
     void set_gps_constrained(bool enable);
 
+    // returns an External AHRS status/health
+    // true if an External AHRS is available and the status has been filled
+    bool get_external_ahrs_status(AP_ExternalAHRS::DevStatus &dev_status) const;
+
 private:
 
     // roll/pitch/yaw euler angles, all in radians

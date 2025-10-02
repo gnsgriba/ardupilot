@@ -3598,6 +3598,22 @@ void AP_AHRS::set_gps_constrained(bool enable)
 #endif
 }
 
+// returns external AHRS status/health
+// dev_status cleared to defaults and, on success, filled with the latest status
+bool AP_AHRS::get_external_ahrs_status(AP_ExternalAHRS::DevStatus &dev_status) const
+{
+#if AP_AHRS_EXTERNAL_ENABLED
+    return external.get_external_ahrs_status(dev_status);
+#else
+    dev_status.state1 = 0u;
+    dev_status.state2 = 0u;
+    dev_status.state3 = 0u;
+    dev_status.state4 = false;
+
+    return false;
+#endif
+}
+
 // singleton instance
 AP_AHRS *AP_AHRS::_singleton;
 

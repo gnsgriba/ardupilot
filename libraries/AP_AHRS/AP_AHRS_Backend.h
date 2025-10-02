@@ -327,4 +327,8 @@ public:
     virtual void set_terrain_hgt_stable(bool stable) {}
 
     virtual void get_control_limits(float &ekfGndSpdLimit, float &controlScaleXY) const = 0;
+
+    // returns external AHRS status/health
+    // dev_status cleared to defaults and, on success, filled with the latest status
+    virtual bool get_external_ahrs_status(AP_ExternalAHRS::DevStatus &dev_status) const { return false; }
 };
