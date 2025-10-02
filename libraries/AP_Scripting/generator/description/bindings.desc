@@ -23,6 +23,16 @@ userdata Location method get_alt_frame uint8_t
 userdata Location method change_alt_frame boolean Location::AltFrame'enum Location::AltFrame::ABSOLUTE Location::AltFrame::ABOVE_TERRAIN
 userdata Location method copy Location
 
+include AP_ExternalAHRS/AP_ExternalAHRS.h
+
+singleton AP_ExternalAHRS rename external_ahrs
+singleton AP_ExternalAHRS depends AP_AHRS_EXTERNAL_ENABLED
+userdata AP_ExternalAHRS::DevStatus depends AP_AHRS_EXTERNAL_ENABLED
+userdata AP_ExternalAHRS::DevStatus field state1 uint16_t read
+userdata AP_ExternalAHRS::DevStatus field state2 uint16_t read
+userdata AP_ExternalAHRS::DevStatus field state3 uint16_t read
+userdata AP_ExternalAHRS::DevStatus field state4 boolean read
+
 include AP_AHRS/AP_AHRS.h
 
 singleton AP_AHRS rename ahrs
@@ -61,6 +71,7 @@ singleton AP_AHRS method set_origin boolean Location
 singleton AP_AHRS method initialised boolean
 singleton AP_AHRS method get_posvelyaw_source_set uint8_t
 singleton AP_AHRS method get_quaternion boolean Quaternion'Null
+singleton AP_AHRS method get_external_ahrs_status boolean AP_ExternalAHRS::DevStatus'Null
 
 include AP_Arming/AP_Arming.h
 

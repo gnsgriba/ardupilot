@@ -3043,8 +3043,40 @@ function arming:disarm() end
 
 
 -- desc
+---@class AP_ExternalAHRS__DevStatus_ud
+local AP_ExternalAHRS__DevStatus_ud = {}
+
+---@return AP_ExternalAHRS__DevStatus_ud
+function AP_ExternalAHRS__DevStatus() end
+
+-- get field
+---@return integer
+function AP_ExternalAHRS__DevStatus_ud:state1() end
+
+-- get field
+---@return integer
+function AP_ExternalAHRS__DevStatus_ud:state2() end
+
+-- get field
+---@return integer
+function AP_ExternalAHRS__DevStatus_ud:state3() end
+
+-- get field
+---@return boolean
+function AP_ExternalAHRS__DevStatus_ud:state4() end
+
+-- desc
+---@class external_ahrs
+external_ahrs = {}
+
+
+-- desc
 ---@class ahrs
 ahrs = {}
+
+-- desc
+---@return AP_ExternalAHRS__DevStatus_ud|nil
+function ahrs:get_external_ahrs_status() end
 
 -- desc
 ---@return Quaternion_ud|nil
