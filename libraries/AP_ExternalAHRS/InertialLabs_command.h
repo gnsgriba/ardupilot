@@ -25,6 +25,16 @@ bool fill_command_pyload(Data_context & context,
 
 bool fill_transport_protocol_data(Data_context & context);
 
+void _fill_aiding_data_external_position_payload(Data_context & context, const ExternalAHRS_command_data &data);
+void _fill_aiding_data_external_horizontal_position_payload(Data_context & context, const ExternalAHRS_command_data &data);
+void _fill_aiding_data_external_altitude_payload(Data_context & context, const ExternalAHRS_command_data &data);
+void _fill_aiding_data_wind_payload(Data_context & context, const ExternalAHRS_command_data &data);
+void _fill_aiding_data_ambient_air_payload(Data_context & context, const ExternalAHRS_command_data &data);
+void _fill_aiding_data_external_heading_payload(Data_context & context, const ExternalAHRS_command_data &data);
+void _fill_aiding_data_air_speed_payload(Data_context & context, const ExternalAHRS_command_data &data);
+
+
+
 } // namespace InertialLabs
 
 namespace InertialLabs::Command {

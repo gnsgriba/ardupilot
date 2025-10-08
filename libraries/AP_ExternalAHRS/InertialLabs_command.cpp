@@ -1,6 +1,7 @@
 #include "InertialLabs_command.h"
 
 #if AP_EXTERNAL_AHRS_INERTIALLABS_ENABLED
+#include <limits>
 
 #include "AP_ExternalAHRS_command_context.h"
 #include "InertialLabs_aiding_data.h"
@@ -33,114 +34,33 @@ bool fill_command_pyload(Data_context & context,
     // Start payload from 7th byte
     context.data[6] = 0x01;
 
-    const float epsilon = 1e-5f;
-    uint16_t max_value = (1 << 16) - 1;
-
     switch (command) {
         case ExternalAHRS_command::AIDING_DATA_EXTERNAL_POSITION:
-            context.data[7] = 0x04;
-            {
-                AidingData::External_position *d = (AidingData::External_position *) &context.data[8];
-                d->latitude = data.x;
-                d->longitude = data.y;
-                d->altitude = static_cast<int32_t>(data.z * 1.0e3f);
-                if ((fabsf(data.param2) < epsilon) && (fabsf(data.param3) < epsilon)) {
-                    d->latitudeStd = max_value;
-                    d->longitudeStd = max_value;
-                } else {
-                    d->latitudeStd = static_cast<uint16_t>(data.param2 * 100.0f);
-                    d->longitudeStd = static_cast<uint16_t>(data.param3 * 100.0f);
-                }
-                if (fabsf(data.param4) < epsilon) {
-                    d->altitudeStd = max_value;
-                } else {
-                    d->altitudeStd = static_cast<uint16_t>(data.param4 * 100.0f);
-                }
-                d->latency = static_cast<uint16_t>(data.param1 * 1.0e3f);
-            }
-            context.length += sizeof(AidingData::External_position);
+            _fill_aiding_data_external_position_payload(context, data);
             return true;
 
         case ExternalAHRS_command::AIDING_DATA_EXTERNAL_HORIZONTAL_POSITION:
-            context.data[7] = 0x0E;
-            {
-                AidingData::External_horizontal_position *d = (AidingData::External_horizontal_position *) &context.data[8];
-                d->latitude = data.x;
-                d->longitude = data.y;
-                if ((fabsf(data.param1) < epsilon) && (fabsf(data.param2) < epsilon)) {
-                    d->latitudeStd = max_value;
-                    d->longitudeStd = max_value;
-                } else {
-                    d->latitudeStd = static_cast<uint16_t>(data.param1 * 100.0f);
-                    d->longitudeStd = static_cast<uint16_t>(data.param2 * 100.0f);
-                }
-                d->latency = static_cast<uint16_t>(data.param3 * 1.0e3f);
-            }
-            context.length += sizeof(AidingData::External_horizontal_position);
+            _fill_aiding_data_external_horizontal_position_payload(context, data);
             return true;
 
         case ExternalAHRS_command::AIDING_DATA_EXTERNAL_ALTITUDE:
-            context.data[7] = 0x0C;
-            {
-                AidingData::External_altitude *d = (AidingData::External_altitude *) &context.data[8];
-                d->altitude = static_cast<int32_t>(data.z * 1.0e3f);
-                if (fabsf(data.param1) < epsilon) {
-                    d->altitudeStd = max_value;
-                } else {
-                    d->altitudeStd = static_cast<uint16_t>(data.param1 * 100.0f);
-                }
-            }
-            context.length += sizeof(AidingData::External_altitude);
+            _fill_aiding_data_external_altitude_payload(context, data);
             return true;
 
         case ExternalAHRS_command::AIDING_DATA_WIND:
-            context.data[7] = 0x03;
-            {
-                const float direction = data.param1;
-                const float speed = data.param2;
-                const float speedStd = data.param3;
-
-                // Speed in m/s
-                const float NWind = speed * cosf(direction * M_PI / 180.0f);
-                const float EWind = speed * sinf(direction * M_PI / 180.0f);
-                const float NWindStd = speedStd; //< as designed
-                const float EWindStd = speedStd; //< as designed
-
-                // Speed from m/s to kt
-                const float m_per_s_to_kt = 1.943844f;
-                AidingData::Wind *d = (AidingData::Wind *) &context.data[8];
-                d->north = static_cast<int16_t>(NWind * m_per_s_to_kt * 100.0f);
-                d->east = static_cast<int16_t>(EWind * m_per_s_to_kt * 100.0f);
-                d->northStd = static_cast<uint16_t>(NWindStd * m_per_s_to_kt * 100.0f);
-                d->eastStd = static_cast<uint16_t>(EWindStd * m_per_s_to_kt * 100.0f);
-            }
-            context.length += sizeof(AidingData::Wind);
+            _fill_aiding_data_wind_payload(context, data);
             return true;
 
         case ExternalAHRS_command::AIDING_DATA_AMBIENT_AIR:
-            context.data[7] = 0x0B;
-            {
-                AidingData::Ambient_air *d = (AidingData::Ambient_air *) &context.data[8];
-                d->temperature = static_cast<int16_t>(data.param1 * 10.0f);
-                d->altitude = static_cast<int32_t>(data.z * 100.0f);
-                d->pressure = static_cast<uint16_t>(data.param2 * 0.5f);
-            }
-            context.length += sizeof(AidingData::Ambient_air);
+            _fill_aiding_data_ambient_air_payload(context, data);
             return true;
 
         case ExternalAHRS_command::AIDING_DATA_EXTERNAL_HEADING:
-            context.data[7] = 0x06;
-            {
-                AidingData::External_heading *d = (AidingData::External_heading *) &context.data[8];
-                d->heading = static_cast<uint16_t>(data.param1 * 100.0f);
-                if (fabsf(data.param2) < epsilon) {
-                    d->headingStd = max_value;
-                } else {
-                    d->headingStd = static_cast<uint16_t>(data.param2 * 100.0f);
-                }
-                d->latency = static_cast<uint16_t>(data.param3 * 1.0e3f);
-            }
-            context.length += sizeof(AidingData::External_heading);
+            _fill_aiding_data_external_heading_payload(context, data);
+            return true;
+
+        case ExternalAHRS_command::AIDING_DATA_AIR_SPEED:
+            _fill_aiding_data_air_speed_payload(context, data);
             return true;
 
         default:
@@ -167,6 +87,127 @@ bool fill_transport_protocol_data(Data_context &context) {
     memcpy(&context.data[messageLength], &calculatedChecksum, sizeof(uint16_t));
 
     return true;
+}
+
+void _fill_aiding_data_external_position_payload(Data_context & context, const ExternalAHRS_command_data &data)
+{
+    context.data[7] = 0x04;
+    AidingData::External_position *d = (AidingData::External_position *) &context.data[8];
+    d->latitude = data.x;
+    d->longitude = data.y;
+    d->altitude = static_cast<int32_t>(data.z * 1.0e3f);
+    if ((fabsf(data.param2) < std::numeric_limits<float>::epsilon()) && (fabsf(data.param3) < std::numeric_limits<float>::epsilon())) {
+        d->latitudeStd = std::numeric_limits<uint16_t>::max();
+        d->longitudeStd = std::numeric_limits<uint16_t>::max();
+    } else {
+        d->latitudeStd = static_cast<uint16_t>(data.param2 * 100.0f);
+        d->longitudeStd = static_cast<uint16_t>(data.param3 * 100.0f);
+    }
+    if (fabsf(data.param4) < std::numeric_limits<float>::epsilon()) {
+        d->altitudeStd = std::numeric_limits<uint16_t>::max();
+    } else {
+        d->altitudeStd = static_cast<uint16_t>(data.param4 * 100.0f);
+    }
+    d->latency = static_cast<uint16_t>(data.param1 * 1.0e3f);
+
+    context.length += sizeof(AidingData::External_position);
+}
+
+void _fill_aiding_data_external_horizontal_position_payload(Data_context & context, const ExternalAHRS_command_data &data)
+{
+    context.data[7] = 0x0E;
+
+    AidingData::External_horizontal_position *d = (AidingData::External_horizontal_position *) &context.data[8];
+    d->latitude = data.x;
+    d->longitude = data.y;
+    if ((fabsf(data.param1) < std::numeric_limits<float>::epsilon()) && (fabsf(data.param2) < std::numeric_limits<float>::epsilon())) {
+        d->latitudeStd = std::numeric_limits<uint16_t>::max();
+        d->longitudeStd = std::numeric_limits<uint16_t>::max();
+    } else {
+        d->latitudeStd = static_cast<uint16_t>(data.param1 * 100.0f);
+        d->longitudeStd = static_cast<uint16_t>(data.param2 * 100.0f);
+    }
+    d->latency = static_cast<uint16_t>(data.param3 * 1.0e3f);
+
+    context.length += sizeof(AidingData::External_horizontal_position);
+}
+
+void _fill_aiding_data_external_altitude_payload(Data_context & context, const ExternalAHRS_command_data &data)
+{
+    context.data[7] = 0x0C;
+
+    AidingData::External_altitude *d = (AidingData::External_altitude *) &context.data[8];
+    d->altitude = static_cast<int32_t>(data.z * 1.0e3f);
+    if (fabsf(data.param1) < std::numeric_limits<float>::epsilon()) {
+        d->altitudeStd = std::numeric_limits<uint16_t>::max();
+    } else {
+        d->altitudeStd = static_cast<uint16_t>(data.param1 * 100.0f);
+    }
+
+    context.length += sizeof(AidingData::External_altitude);
+}
+
+void _fill_aiding_data_wind_payload(Data_context & context, const ExternalAHRS_command_data &data)
+{
+    context.data[7] = 0x03;
+
+    const float direction = data.param1;
+    const float speed = data.param2;
+    const float speedStd = data.param3;
+
+    // Speed in m/s
+    const float NWind = speed * cosf(direction * M_PI / 180.0f);
+    const float EWind = speed * sinf(direction * M_PI / 180.0f);
+    const float NWindStd = speedStd; //< as designed
+    const float EWindStd = speedStd; //< as designed
+
+    // Speed from m/s to kt
+    const float m_per_s_to_kt = 1.943844f;
+    AidingData::Wind *d = (AidingData::Wind *) &context.data[8];
+    d->north = static_cast<int16_t>(NWind * m_per_s_to_kt * 100.0f);
+    d->east = static_cast<int16_t>(EWind * m_per_s_to_kt * 100.0f);
+    d->northStd = static_cast<uint16_t>(NWindStd * m_per_s_to_kt * 100.0f);
+    d->eastStd = static_cast<uint16_t>(EWindStd * m_per_s_to_kt * 100.0f);
+
+    context.length += sizeof(AidingData::Wind);
+}
+
+void _fill_aiding_data_ambient_air_payload(Data_context & context, const ExternalAHRS_command_data &data)
+{
+    context.data[7] = 0x0B;
+
+    AidingData::Ambient_air *d = (AidingData::Ambient_air *) &context.data[8];
+    d->temperature = static_cast<int16_t>(data.param1 * 10.0f);
+    d->altitude = static_cast<int32_t>(data.z * 100.0f);
+    d->pressure = static_cast<uint16_t>(data.param2 * 0.5f);
+
+    context.length += sizeof(AidingData::Ambient_air);
+}
+
+void _fill_aiding_data_external_heading_payload(Data_context & context, const ExternalAHRS_command_data &data)
+{
+    context.data[7] = 0x06;
+
+    AidingData::External_heading *d = (AidingData::External_heading *) &context.data[8];
+    d->heading = static_cast<uint16_t>(data.param1 * 100.0f);
+    if (fabsf(data.param2) < std::numeric_limits<float>::epsilon()) {
+        d->headingStd = std::numeric_limits<uint16_t>::max();
+    } else {
+        d->headingStd = static_cast<uint16_t>(data.param2 * 100.0f);
+    }
+    d->latency = static_cast<uint16_t>(data.param3 * 1.0e3f);
+
+    context.length += sizeof(AidingData::External_heading);
+}
+
+void _fill_aiding_data_air_speed_payload(Data_context & context, const ExternalAHRS_command_data &data)
+{
+    context.data[7] = 0x02;
+
+    AidingData::Air_speed *d = (AidingData::Air_speed *) &context.data[8];
+    d->airSpeed = static_cast<int16_t>(data.param1);
+
+    context.length += sizeof(AidingData::Air_speed);
 }
 
 } // namespace InertialLabs

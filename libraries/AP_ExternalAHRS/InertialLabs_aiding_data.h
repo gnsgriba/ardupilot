@@ -54,6 +54,10 @@ struct PACKED External_heading {
     uint16_t latency;    // msec
 };
 
+struct PACKED Air_speed {
+    int16_t airSpeed;    // 0.01kt
+};
+
 } // namespace InertialLabs::AidingData
 
 #endif  // AP_EXTERNAL_AHRS_INERTIALLABS_ENABLED

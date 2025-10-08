@@ -38,9 +38,6 @@ extern const AP_HAL::HAL &hal;
 
 namespace {
 
-static const uint64_t SEND_CRITICAL_MESSAGED_DELAY = 10000;
-static const uint16_t max_aiding_data_rate = 50; // Maximum Aiding data rate in Hz
-
 // initial array of timestamp of IL INS statuses
 uint64_t IL_usw_last_message_ms[InertialLabs::usw_message_list_size] = {0};
 uint64_t IL_usw2_last_message_ms[InertialLabs::usw2_message_list_size] = {0};
@@ -184,7 +181,7 @@ void AP_ExternalAHRS_InertialLabs::handle_command(ExternalAHRS_command command, 
             InertialLabs::Data_context context;
             InertialLabs::fill_command_pyload(context, command, data);
             InertialLabs::fill_transport_protocol_data(context);
-            AP::externalAHRS().write_bytes(reinterpret_cast<const char *>(context.data), context.length);
+            write_bytes(reinterpret_cast<const char *>(context.data), context.length);
             break;
         }
 
@@ -231,6 +228,7 @@ bool AP_ExternalAHRS_InertialLabs::handle_full_circle()
     }
 
     handle_sensor_data();
+    send_data_to_sensor();
     write_logs();
     send_GCS_messages();
     return true;
@@ -257,17 +255,6 @@ void AP_ExternalAHRS_InertialLabs::handle_sensor_data()
     using InertialLabs::USW2;
 
     const InertialLabs::SensorsData &sensors_data = sensor.get_sensors_data();
-
-    // TODO: Refactor
-    const bool transmit_airspeed = option_is_set(AP_ExternalAHRS::OPTIONS::ILAB_TRANSMIT_AIRSPEED);
-    if (transmit_airspeed) {
-        uint16_t points_to_decimate = get_num_points_to_dec(max_aiding_data_rate);
-        if (airspeed_message_counter >= points_to_decimate) {
-            send_airspeed_packet_to_sensor();
-            airspeed_message_counter = 0;
-        }
-        airspeed_message_counter++;
-    }
 
     const bool filter_ok = (sensors_data.ins.unit_status & USW::INITIAL_ALIGNMENT_FAIL) == 0 &&
                            (sensors_data.ins.ins_sol_status != InsSolution::INVALID);
@@ -683,6 +670,30 @@ void AP_ExternalAHRS_InertialLabs::write_logs()
 #endif  // HAL_LOGGING_ENABLED
 }
 
+void AP_ExternalAHRS_InertialLabs::send_data_to_sensor()
+{
+    const bool transmit_airspeed = option_is_set(AP_ExternalAHRS::OPTIONS::ILAB_TRANSMIT_AIRSPEED);
+    if (transmit_airspeed) {
+        const uint16_t inu_data_rate = get_rate(); // Hz
+        const uint16_t max_aiding_data_rate = 50; // Hz
+        uint16_t ticks_for_one_send = (inu_data_rate / max_aiding_data_rate);
+        if (inu_data_rate % max_aiding_data_rate)
+        {
+            ++ticks_for_one_send;
+        }
+
+        if (airspeed_message_counter < ticks_for_one_send)
+        {
+            ++airspeed_message_counter;
+        }
+        else
+        {
+            send_airspeed_aiding_data();
+            airspeed_message_counter = 0;
+        }
+    }
+}
+
 void AP_ExternalAHRS_InertialLabs::send_GCS_messages()
 {
     using InertialLabs::USW;
@@ -827,6 +838,8 @@ void AP_ExternalAHRS_InertialLabs::send_EAHRS_status_msg(uint16_t last_state,
                                                          const size_t message_list_size,
                                                          uint64_t* last_msg_ms)
 {
+    const uint64_t send_critical_messaged_delay = 10000;
+
     const InertialLabs::SensorsData &sensors_data = sensor.get_sensors_data();
 
     for (size_t i = 0; i < message_list_size; i++) {
@@ -836,7 +849,7 @@ void AP_ExternalAHRS_InertialLabs::send_EAHRS_status_msg(uint16_t last_state,
 
         if (message_list[i].severity == MAV_SEVERITY_CRITICAL &&
                 current_status &&
-                (is_status_changed || (sensors_data.package_timestamp_ms - last_msg_ms[i] > SEND_CRITICAL_MESSAGED_DELAY))) {
+                (is_status_changed || (sensors_data.package_timestamp_ms - last_msg_ms[i] > send_critical_messaged_delay))) {
             GCS_SEND_TEXT(MAV_SEVERITY_CRITICAL, "ILAB: %s", message_list[i].message_true);
             last_msg_ms[i] = sensors_data.package_timestamp_ms;
             continue;
@@ -852,53 +865,26 @@ void AP_ExternalAHRS_InertialLabs::send_EAHRS_status_msg(uint16_t last_state,
     }
 }
 
-// get number of points to downsampling
-uint16_t AP_ExternalAHRS_InertialLabs::get_num_points_to_dec(const uint16_t &rate) const // < TODO: refactor
+void AP_ExternalAHRS_InertialLabs::send_airspeed_aiding_data()
 {
-    uint16_t data_rate = get_rate();
-    if (rate == 0 || data_rate == 0) {
-        return 0;
+    InertialLabs::Data_context context;
+    ExternalAHRS_command_data data;
+
+    data.param1 = floorf(AP::airspeed()->get_raw_airspeed() * 1.94384449f * 100.0f + 0.5f); // in 0.01 kt
+    if (data.param1 > 32267.0f)
+    {
+        data.param1 = 32267.0f;
     }
-    uint16_t a = data_rate;
-    uint16_t b = rate;
-    while (b != 0) {
-        uint16_t temp = b;
-        b = a % b;
-        a = temp;
+    else if (data.param1 < -32268.0f)
+    {
+        data.param1 = -32268.0f;
     }
-    return data_rate / a;
-}
 
-void AP_ExternalAHRS_InertialLabs::send_airspeed_packet_to_sensor() // < TODO: refactor
-{
-    uint8_t packet[64];
-
-    uint8_t *tmp_ptr = packet;
-    uint8_t hdr[] = {0xAA, 0x55, 0x01, 0x62}; // 0xAA 0x55 - packet header, 0x01 - packet type, 0x62 - packet ID
-    int16_t new_data{0};
-    float external_speed{0};
-
-    uint16_t len_packet = 1/*type*/ + 1/*ID*/ + 2/*lenght*/ + 1/*meas num*/ + 1/*meas list*/ + sizeof(int16_t)/*airspeed*/ + sizeof(uint16_t)/*checksum*/;
-
-    memcpy(tmp_ptr, hdr, sizeof(hdr)); // header
-    tmp_ptr += sizeof(hdr);
-    memcpy(tmp_ptr, &len_packet, sizeof(len_packet));
-    tmp_ptr += sizeof(len_packet);
-    // Air speed , 0x02
-    *tmp_ptr++ = 0x01;
-    *tmp_ptr++ = 0x02;
-    external_speed = floorf(AP::airspeed()->get_raw_airspeed() * 1.94384449f * 100.0f + 0.5f);
-    if (external_speed > 32267.0f)  external_speed = 32267.0f;
-    if (external_speed < -32268.0f) external_speed = -32268.0f;
-    new_data = static_cast<int16_t>(external_speed);
-    memcpy(tmp_ptr, &new_data, sizeof(new_data));
-    tmp_ptr += sizeof(new_data);
-
-    uint16_t tmp_crc = crc_sum_of_bytes_16(packet + 2, (tmp_ptr - packet) - 2); // -0xAA55
-    memcpy(tmp_ptr, &tmp_crc, sizeof(tmp_crc)); // checksum
-    tmp_ptr += sizeof(tmp_crc);
-
-    write_bytes(reinterpret_cast<const char *>(packet), (tmp_ptr - packet));
+    InertialLabs::fill_command_pyload(context,
+                                      ExternalAHRS_command::AIDING_DATA_AIR_SPEED,
+                                      data);
+    InertialLabs::fill_transport_protocol_data(context);
+    write_bytes(reinterpret_cast<const char *>(context.data), context.length);
 }
 
 #endif  // AP_EXTERNAL_AHRS_INERTIALLABS_ENABLED

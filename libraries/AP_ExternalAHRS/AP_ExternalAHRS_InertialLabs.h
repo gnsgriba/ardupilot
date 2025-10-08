@@ -53,14 +53,14 @@ private:
 
     void handle_sensor_data();
     void write_logs();
+    void send_data_to_sensor();
     void send_GCS_messages();
     void send_EAHRS_status_msg(uint16_t last_state,
                                uint16_t current_state,
                                const InertialLabs::StatusMessage* message_list,
                                const size_t message_list_size,
                                uint64_t* last_msg_ms);
-    uint16_t get_num_points_to_dec(const uint16_t &rate) const; // < TODO: refactor
-    void send_airspeed_packet_to_sensor();  // < TODO: refactor
+    void send_airspeed_aiding_data();
 
 private:
     InertialLabs::Sensor sensor;
@@ -87,7 +87,7 @@ private:
         uint32_t mag_ms;
     } last_sensor_data{};
 
-    uint16_t airspeed_message_counter = 0;  // < TODO: refactor
+    uint16_t airspeed_message_counter = 0;
 };
 
 #endif  // AP_EXTERNAL_AHRS_INERTIALLABS_ENABLED
