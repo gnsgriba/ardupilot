@@ -36,15 +36,6 @@
 
 extern const AP_HAL::HAL &hal;
 
-namespace {
-
-// initial array of timestamp of IL INS statuses
-uint64_t IL_usw_last_message_ms[InertialLabs::usw_message_list_size] = {0};
-uint64_t IL_usw2_last_message_ms[InertialLabs::usw2_message_list_size] = {0};
-uint64_t IL_adu_last_message_ms[InertialLabs::adu_message_list_size] = {0};
-
-} // namespace
-
 AP_ExternalAHRS_InertialLabs::AP_ExternalAHRS_InertialLabs(AP_ExternalAHRS *_frontend,
                                                            AP_ExternalAHRS::state_t &_state) :
     AP_ExternalAHRS_backend(_frontend, _state)
@@ -201,7 +192,6 @@ void AP_ExternalAHRS_InertialLabs::send_eahrs_status_flag(GCS_MAVLINK &link) con
 {
     const InertialLabs::SensorsData &sensors_data = sensor.get_sensors_data();
 
-    // Send EAHRS status flag to GCS
     const mavlink_eahrs_status_info_t package{sensors_data.ins.unit_status,
                                               sensors_data.ins.unit_status2,
                                               sensors_data.ins.air_data_status,
@@ -718,7 +708,7 @@ void AP_ExternalAHRS_InertialLabs::send_GCS_messages()
                               sensors_data.ins.unit_status,
                               usw_message_list,
                               usw_message_list_size,
-                              IL_usw_last_message_ms); // IL INS Unit Status Word (USW) messages
+                              usw_last_message_timestamp_ms); // IL INS Unit Status Word (USW) messages
         last_sensor_data.unit_status = sensors_data.ins.unit_status;
 
         if ((sensors_data.ins.unit_status & USW::MAG_VG3D_CLB_RUNTIME) != 0) {
@@ -763,7 +753,7 @@ void AP_ExternalAHRS_InertialLabs::send_GCS_messages()
                                 sensors_data.ins.unit_status2,
                                 usw2_message_list,
                                 usw2_message_list_size,
-                                IL_usw2_last_message_ms); // IL INS Unit Status Word 2 (USW2) messages
+                                usw2_last_message_timestamp_ms); // IL INS Unit Status Word 2 (USW2) messages
         last_sensor_data.unit_status2 = sensors_data.ins.unit_status2;
     }
 
@@ -772,7 +762,7 @@ void AP_ExternalAHRS_InertialLabs::send_GCS_messages()
                                 sensors_data.ins.air_data_status,
                                 adu_message_list,
                                 adu_message_list_size,
-                                IL_adu_last_message_ms); // IL Air Data Unit (ADU) messages
+                                adu_last_message_timestamp_ms); // IL Air Data Unit (ADU) messages
         last_sensor_data.air_data_status = sensors_data.ins.air_data_status;
     }
 

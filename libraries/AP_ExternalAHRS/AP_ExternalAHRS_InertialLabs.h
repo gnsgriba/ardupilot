@@ -45,9 +45,7 @@ public:
     const char* get_name() const override { return "ILabs"; }
 
 private:
-    uint8_t num_gps_sensors() const override {
-        return 1;
-    }
+    uint8_t num_gps_sensors() const override { return 1; }
     bool handle_full_circle();
     void update_thread();
 
@@ -88,6 +86,10 @@ private:
     } last_sensor_data{};
 
     uint16_t airspeed_message_counter = 0;
+
+    uint64_t usw_last_message_timestamp_ms[InertialLabs::usw_message_list_size] = {0};
+    uint64_t usw2_last_message_timestamp_ms[InertialLabs::usw2_message_list_size] = {0};
+    uint64_t adu_last_message_timestamp_ms[InertialLabs::adu_message_list_size] = {0};
 };
 
 #endif  // AP_EXTERNAL_AHRS_INERTIALLABS_ENABLED

@@ -8,7 +8,7 @@
 
 namespace {
 
-// acceleration due to gravity in m/s/s used in IL INS
+// acceleration due to gravity in m/s^2 used in IL INS
 constexpr float IL_GRAVITY_MSS = 9.8106f;
 
 bool is_message_header_correct(const InertialLabs::MessageHeader *h)
@@ -227,7 +227,7 @@ bool Sensor::parse_udd_payload()
                 break;
             }
             case DataType::ACCEL_DATA_HR: {
-                _sensors_data.accel = udd.accel_data_hr.tofloat().rfu_to_frd()*IL_GRAVITY_MSS*1.0e-6f; // NED, in m/s/s
+                _sensors_data.accel = udd.accel_data_hr.tofloat().rfu_to_frd()*IL_GRAVITY_MSS*1.0e-6f; // NED, in m/s^2
                 message_length = sizeof(udd.accel_data_hr);
                 break;
             }
