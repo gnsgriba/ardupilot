@@ -449,6 +449,11 @@ bool Sensor::parse_udd_payload()
                 message_length = sizeof(udd.mag_clb_accuracy);
                 break;
             }
+            case DataType::DOPPLER_VELOCITY_LOG: {
+                _sensors_data.ext.doppler_velocity_log = udd.doppler_velocity_log;
+                message_length = sizeof(udd.doppler_velocity_log);
+                break;
+            }
             default: {
                 GCS_SEND_TEXT(MAV_SEVERITY_ERROR, "ILAB: Unknown message type: %d. Further package parsing result will be incorrect!",
                     message_type);

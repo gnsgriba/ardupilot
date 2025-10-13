@@ -657,6 +657,33 @@ void AP_ExternalAHRS_InertialLabs::write_logs()
                                     static_cast<float>(sensors_data.ext.wind_data.e_std_wind)*0.5144f*0.01f,
                                     static_cast<float>(sensors_data.ext.wind_data.n_std_wind)*0.5144f*0.01f);
     }
+
+    if (sensors_data.ext.new_aiding_data & NewAidingData::NEW_DVL) {
+        // @LoggerMessage: ILBV
+        // @Description: InertialLabs doppler velocity log data
+        // @Field: TimeUS: Time since system startup
+        // @Field: IMS: GPS INS time (round)
+        // @Field: LV: Lateral velocity (m/sec)
+        // @Field: FV: Forward velocity (m/sec)
+        // @Field: VV: Vertical velocity (m/sec)
+        // @Field: LVS: Lateral velocity STD (m/sec)
+        // @Field: FVS: Forward velocity STD (m/sec)
+        // @Field: VVS: Vertical velocity STD (m/sec)
+        // @Field: VL: Velocity latency (ms)
+
+        AP::logger().WriteStreaming("ILBV", "TimeUS,IMS,LV,FV,VV,LVS,FVS,VVS,VL",
+                                    "s-nnnnnn-",
+                                    "F--------",
+                                    "QIffffffI",
+                                    now_us, sensors_data.ins.ms_tow,
+                                    static_cast<float>(sensors_data.ext.doppler_velocity_log.lateralVel)*1.0e-3,
+                                    static_cast<float>(sensors_data.ext.doppler_velocity_log.forwardVel)*1.0e-3,
+                                    static_cast<float>(sensors_data.ext.doppler_velocity_log.verticalVel)*1.0e-3,
+                                    static_cast<float>(sensors_data.ext.doppler_velocity_log.lateralVelStd)*1.0e-3,
+                                    static_cast<float>(sensors_data.ext.doppler_velocity_log.forwardVelStd)*1.0e-3,
+                                    static_cast<float>(sensors_data.ext.doppler_velocity_log.verticalVelStd)*1.0e-3,
+                                    sensors_data.ext.doppler_velocity_log.velLatency);
+    }
 #endif  // HAL_LOGGING_ENABLED
 }
 

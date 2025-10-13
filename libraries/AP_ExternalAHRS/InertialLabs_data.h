@@ -65,6 +65,7 @@ enum DataType : uint8_t {
     EXT_AMBIENT_DATA = 0x6B,
     EXT_WIND_DATA = 0x62,
     MAG_CLB_ACCURACY = 0x9A,
+    DOPPLER_VELOCITY_LOG = 0X67,
 };
 
 // Ins Solutiob Status
@@ -145,6 +146,7 @@ enum NewAidingData {
     NEW_WIND        = (1U << 2),
     NEW_EXT_POS     = (1U << 3),
     NEW_HEADING     = (1U << 5),
+    NEW_DVL         = (1U << 6),
     NEW_AMBIENT     = (1U << 10),
     NEW_ALTITUDE    = (1U << 11),
     NEW_EXT_HOR_POS = (1U << 13),
@@ -263,6 +265,17 @@ struct PACKED ExtWindData {
     uint16_t e_std_wind;  // kt*100
 };
 
+struct PACKED DopplerVelocityLog {
+    int32_t lateralVel; // m/sec*1000
+    int32_t forwardVel; // m/sec*1000
+    int32_t verticalVel; // m/sec*1000
+    uint16_t lateralVelStd; // m/sec*1000
+    uint16_t forwardVelStd; // m/sec*1000
+    uint16_t verticalVelStd; // m/sec*1000
+    uint16_t velLatency; // ms
+    int32_t reserved;
+};
+
 union PACKED UDDMessageData {
     uint32_t gps_time_ms;  // ms since start of GPS week
     uint16_t gps_week;
@@ -300,6 +313,7 @@ union PACKED UDDMessageData {
     uint32_t gnss_pos_timestamp;  // ms
     uint8_t gnss_new_data;
     uint8_t gnss_jam_status;
+    DopplerVelocityLog doppler_velocity_log;
     int32_t differential_pressure;  // mbar*1e4
     int16_t true_airspeed;          // m/s*100
     int16_t calibrated_airspeed;    // m/s*100
@@ -378,6 +392,7 @@ struct ExtData {
     ExtHeading heading;
     ExtAmbientData ambient_air_data;
     ExtWindData wind_data;
+    DopplerVelocityLog doppler_velocity_log;
 };
 
 struct SensorsData {
