@@ -40,8 +40,6 @@
 
 #include "AP_GPS_NMEA.h"
 
-#define MAX_NMEA_READ 256
-
 #if AP_GPS_NMEA_ENABLED
 extern const AP_HAL::HAL& hal;
 
@@ -60,40 +58,37 @@ extern const AP_HAL::HAL& hal;
 
 bool AP_GPS_NMEA::read(void)
 {
-    send_config();
-
-    // 1. Створюємо локальний буфер для читання і логування
-    char read_buffer[MAX_NMEA_READ];
-    uint16_t bytes_available;
-    uint16_t bytes_read;
+    int16_t numc;
     bool parsed = false;
 
-    // Читаємо стільки байтів, скільки доступно, до MAX_NMEA_READ
-    bytes_available = port->available();
-    if (bytes_available == 0) {
-        return false;
-    }
+    send_config();
 
-    // Використовуємо .read() для читання блоку даних
-    bytes_read = port->read((uint8_t *)read_buffer, MIN(bytes_available, MAX_NMEA_READ));
+    numc = port->available();
+    while (numc--) {
+        char c = port->read();
 
-    if (bytes_read > 0) {
+        // Початок надстройки
+        if (_nmea_gcs_buf_len < sizeof(_nmea_gcs_buf_len) - 1) {
+            _nmea_gcs_buf[_nmea_gcs_buf_len] = c;
+        }
 
-        // 2. *** КЛЮЧОВИЙ КРОК: ЛОГУВАННЯ СИРИХ ДАНИХ NMEA ***
-        // 'GNME' - кастомний тег для DataFlash NMEA Raw.
-        AP::logger().Write_Raw_Log_Text("GNME", read_buffer, bytes_read); 
-        
-        // 3. ОБРОБКА БАЙТІВ (як раніше робила оригінальна функція)
-        for (uint16_t i = 0; i < bytes_read; i++) {
-            if (_decode(read_buffer[i])) {
-                parsed = true;
-            }
+        if (c == '\n') {
+            _nmea_gcs_buf[_nmea_gcs_buf_len] = '\0';
+            gcs().send_text(MAV_SEVERITY_INFO, "%s", _nmea_gcs_buf);
+            GCS_SEND_TEXT(MAV_SEVERITY_INFO, "%s", _nmea_gcs_buf);
+            _nmea_gcs_buf_len = 0;
+        }
+
+        // Кінець надстройки
+#if AP_GPS_DEBUG_LOGGING_ENABLED
+        log_data((const uint8_t *)&c, 1);
+#endif
+        if (_decode(c)) {
+            parsed = true;
         }
     }
-
     return parsed;
 }
-
 /*
   decode one character, return true if we have successfully completed a sentence, false otherwise
  */

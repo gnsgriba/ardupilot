@@ -184,6 +184,11 @@ private:
     uint32_t _last_AGRICA_ms;
     uint32_t _last_fix_ms;
 
+    // Початок надстройки
+    char     _nmea_gcs_buf[128];       // Буфер для збору NMEA-речення
+    uint8_t  _nmea_gcs_buf_len;      // Лічильник заповнення буфера
+    // Кінець надстройки 
+    
     /// @name	Init strings
     ///			In ::init, an attempt is made to configure the GPS
     ///			unit to send just the messages that we are interested
