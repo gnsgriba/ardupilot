@@ -76,6 +76,7 @@ bool AP_GPS_NMEA::read(void)
             _nmea_gcs_buf[_nmea_gcs_buf_len] = '\0';
             gcs().send_text(MAV_SEVERITY_INFO, "%s", _nmea_gcs_buf);
             GCS_SEND_TEXT(MAV_SEVERITY_INFO, "%s", _nmea_gcs_buf);
+            AP::logger().Write_MessageF("NMEA %s", _nmea_gcs_buf);
             _nmea_gcs_buf_len = 0;
         }
 
